@@ -85,7 +85,7 @@ func (r *ORANO2IMSReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	nextReconcile = ctrl.Result{RequeueAfter: 5 * time.Minute}
 
 	// Create the needed Ingress if at least one server is required by the Spec.
-	if orano2ims.Spec.MetadataServer || orano2ims.Spec.DeploymentManagerServer {
+	if orano2ims.Spec.MetadataServer || orano2ims.Spec.DeploymentManagerServer || orano2ims.Spec.AlarmSubscriptionServer {
 		err = r.createIngress(ctx, orano2ims)
 		if err != nil {
 			r.Log.Error(err, "Failed to deploy Service for Metadata server.")
@@ -151,6 +151,43 @@ func (r *ORANO2IMSReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		err = r.deployManagerServer(ctx, orano2ims)
 		if err != nil {
 			r.Log.Error(err, "Failed to deploy the Deployment Manager server.")
+			return
+		}
+	}
+	// Start the alert subscription server if required by the Spec.
+	if orano2ims.Spec.AlarmSubscriptionServer {
+		// Create the client ServiceAccount.
+		err = r.createServiceAccount(ctx, orano2ims, utils.ORANO2IMSClientSAName)
+		if err != nil {
+			r.Log.Error(err, fmt.Sprintf("Failed to deploy ServiceAccount %s for alert subscription server.", utils.ORANO2IMSClientSAName))
+			return
+		}
+
+		// Create authz ConfigMap.
+		err = r.createConfigMap(ctx, orano2ims, utils.ORANO2IMSConfigMapName)
+		if err != nil {
+			r.Log.Error(err, "Failed to deploy ConfigMap for alert subscription server.")
+			return
+		}
+
+		// Create the needed ServiceAccount.
+		err = r.createServiceAccount(ctx, orano2ims, utils.ORANO2IMSAlarmSubscriptionServerName)
+		if err != nil {
+			r.Log.Error(err, "Failed to deploy ServiceAccount for Alarm Subscription server.")
+			return
+		}
+
+		// Create the Service needed for the alert subscription server.
+		err = r.createService(ctx, orano2ims, utils.ORANO2IMSAlarmSubscriptionServerName)
+		if err != nil {
+			r.Log.Error(err, "Failed to deploy Service for Alarm Subscription server.")
+			return
+		}
+
+		// Create the alert subscription-server deployment.
+		err = r.deployManagerServer(ctx, orano2ims)
+		if err != nil {
+			r.Log.Error(err, "Failed to deploy the alert subscription server.")
 			return
 		}
 	}
@@ -460,6 +497,21 @@ func (r *ORANO2IMSReconciler) createIngress(ctx context.Context, orano2ims *oran
 								Backend: networkingv1.IngressBackend{
 									Service: &networkingv1.IngressServiceBackend{
 										Name: "metadata-server",
+										Port: networkingv1.ServiceBackendPort{
+											Name: utils.ORANO2IMSIngressName,
+										},
+									},
+								},
+							},
+							{
+								Path: "/o2ims-infrastructureInventory/v1/alertSubscriptions",
+								PathType: func() *networkingv1.PathType {
+									pathType := networkingv1.PathTypePrefix
+									return &pathType
+								}(),
+								Backend: networkingv1.IngressBackend{
+									Service: &networkingv1.IngressServiceBackend{
+										Name: "alert-subscription-server",
 										Port: networkingv1.ServiceBackendPort{
 											Name: utils.ORANO2IMSIngressName,
 										},
