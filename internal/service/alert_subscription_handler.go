@@ -17,10 +17,8 @@ package service
 import (
 	"context"
 	"errors"
-	"fmt"
 	"log/slog"
 	"net/http"
-	neturl "net/url"
 	"slices"
 	"sync"
 
@@ -42,7 +40,7 @@ type AlertSubscriptionHandlerBuilder struct {
 	extensions     []string
 }
 
-// AlertSubscriptionCollectionHander knows how to respond to requests to list deployment managers.
+// AlertSubscriptionHander knows how to respond to requests to list deployment managers.
 // Don't create instances of this type directly, use the NewAlertSubscriptionHandler function
 // instead.
 type AlertSubscriptionHandler struct {
@@ -185,19 +183,26 @@ func (h *AlertSubscriptionHandler) List(ctx context.Context,
 	return
 }
 
+func (h *AlertSubscriptionHandler) RetrieveSubscriptionMapValue(
+	request *GetRequest) (item any, err error) {
+	h.subscritionMapMemoryLock.Lock()
+	defer h.subscritionMapMemoryLock.Unlock()
+	item, ok := h.subscriptionMap[request.Variables[0]]
+	if !ok {
+		err = ErrNotFound
+		return
+	}
+	err = nil
+	return
+}
+
 // Get is the implementation of the object handler interface.
 func (h *AlertSubscriptionHandler) Get(ctx context.Context,
 	request *GetRequest) (response *GetResponse, err error) {
 
+	item, err := h.RetrieveSubscriptionMapValue(request)
 
-    //to move to fetch function
-	// Fetch the item:
-	h.subscritionMapMemoryLock.Lock()
-	defer h.subscritionMapMemoryLock.Unlock()
-	item, ok := h.subscriptionMap[request.Variables[0]]
-	if not ok {
-		err = ErrNotFound
-		// use go defer
+	if err != nil {
 		return
 	}
 
@@ -215,16 +220,17 @@ func (h *AlertSubscriptionHandler) Get(ctx context.Context,
 	return
 }
 
-
 func (h *AlertSubscriptionHandler) fetchItem(ctx context.Context,
 	id string) (result data.Object, err error) {
 	// Currently the ACM global hub API that we use doesn't have a specific endpoint for
 	// retrieving a specific object, instead of that we need to fetch a list filtering with a
 	// label selector.
-	query := neturl.Values{}
+	/* query := neturl.Values{}
 	query.Set("labelSelector", fmt.Sprintf("clusterID=%s", id))
-	query.Set("limit", "1")
-	response, err := h.doGet(ctx, "/global-hub-api/v1/managedclusters", query)
+	query.Set("limit", "1") */
+
+	request := &GetRequest{Variables: []string{id}}
+	response, err := h.Get(ctx, request)
 	if err != nil {
 		return
 	}
