@@ -184,7 +184,7 @@ func (h *AlertSubscriptionHandler) List(ctx context.Context,
 }
 
 func (h *AlertSubscriptionHandler) RetrieveSubscriptionMapValue(
-	request *GetRequest) (item any, err error) {
+	request *GetRequest) (item data.Object, err error) {
 	h.subscritionMapMemoryLock.Lock()
 	defer h.subscritionMapMemoryLock.Unlock()
 	item, ok := h.subscriptionMap[request.Variables[0]]
@@ -216,7 +216,6 @@ func (h *AlertSubscriptionHandler) Get(ctx context.Context,
 	response = &GetResponse{
 		Object: item,
 	}
-
 	return
 }
 
@@ -253,7 +252,8 @@ func (h *AlertSubscriptionHandler) fetchItem(ctx context.Context,
 	return
 }
 
-func (h *AlertSubscriptionHandler) fetchItems(
+// items needs to be investigation
+/*func (h *AlertSubscriptionHandler) fetchItems(
 	ctx context.Context) (result data.Stream, err error) {
 	if err != nil {
 		return
@@ -263,7 +263,7 @@ func (h *AlertSubscriptionHandler) fetchItems(
 		SetReader(response.Body).
 		Build()
 	return
-}
+} */
 
 func (h *AlertSubscriptionHandler) mapItem(ctx context.Context,
 	input data.Object) (output data.Object, err error) {
