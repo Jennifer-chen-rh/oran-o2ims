@@ -78,17 +78,17 @@ func AlertSubscriptionServer() *cobra.Command {
 
 // DeploymentManagerServerCommand contains the data and logic needed to run the `start
 // deployment-manager-server` command.
-type DeploymentManagerServerCommand struct {
+type AlertSubscriptionServerCommand struct {
 }
 
-// NewDeploymentManagerServer creates a new runner that knows how to execute the `start
+// NewAlertSubscriptionServer creates a new runner that knows how to execute the `start
 // deployment-manager-server` command.
-func NewDeploymentManagerServer() *DeploymentManagerServerCommand {
-	return &DeploymentManagerServerCommand{}
+func NewAlertSubscriptionServer() *AlertSubscriptionServerCommand {
+	return &AlertSubscriptionServerCommand{}
 }
 
 // run executes the `start deployment-manager-server` command.
-func (c *DeploymentManagerServerCommand) run(cmd *cobra.Command, argv []string) error {
+func (c *AlertSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) error {
 	// Get the context:
 	ctx := cmd.Context()
 
@@ -121,58 +121,6 @@ func (c *DeploymentManagerServerCommand) run(cmd *cobra.Command, argv []string) 
 	)
 
 	// Get the backend details:
-	backendTypeText, err := flags.GetString(backendTypeFlagName)
-	if err != nil {
-		logger.Error(
-			"Failed to get backend type flag",
-			"flag", backendTypeFlagName,
-			"error", err.Error(),
-		)
-		return exit.Error(1)
-	}
-	backendType := service.DeploymentManagerBackendType(backendTypeText)
-	switch backendType {
-	case service.DeploymentManagerBackendTypeGlobalHub:
-	case service.DeploymentManagerBackendTypeRegularHub:
-	default:
-		logger.Error(
-			"Unknown backend type",
-			slog.String("type", backendTypeText),
-		)
-		return exit.Error(1)
-	}
-	backendURL, err := flags.GetString(backendURLFlagName)
-	if err != nil {
-		logger.Error(
-			"Failed to get backend URL flag",
-			"flag", backendURLFlagName,
-			"error", err.Error(),
-		)
-		return exit.Error(1)
-	}
-	if backendURL == "" {
-		logger.Error(
-			"Backend URL is empty",
-			"flag", backendURLFlagName,
-		)
-		return exit.Error(1)
-	}
-	backendToken, err := flags.GetString(backendTokenFlagName)
-	if err != nil {
-		logger.Error(
-			"Failed to get backend token flag",
-			"flag", backendTokenFlagName,
-			"error", err.Error(),
-		)
-		return exit.Error(1)
-	}
-	if backendToken == "" {
-		logger.Error(
-			"Backend token is empty",
-			"flag", backendTokenFlagName,
-		)
-		return exit.Error(1)
-	}
 	extensions, err := flags.GetStringArray(extensionsFlagName)
 	if err != nil {
 		logger.Error(
@@ -183,10 +131,7 @@ func (c *DeploymentManagerServerCommand) run(cmd *cobra.Command, argv []string) 
 		return exit.Error(1)
 	}
 	logger.Info(
-		"Backend details",
-		slog.String("type", string(backendType)),
-		slog.String("url", backendURL),
-		slog.String("!token", backendToken),
+		"Alert subscription extensions details",
 		slog.Any("extensions", extensions),
 	)
 
@@ -238,15 +183,11 @@ func (c *DeploymentManagerServerCommand) run(cmd *cobra.Command, argv []string) 
 	router.Use(authenticationWrapper, authorizationWrapper)
 
 	// Create the handler:
-	handler, err := service.NewDeploymentManagerHandler().
+	handler, err := service.NewAlertSubscriptionHandler().
 		SetLogger(logger).
 		SetLoggingWrapper(loggingWrapper).
 		SetCloudID(cloudID).
 		SetExtensions(extensions...).
-		SetBackendType(backendType).
-		SetBackendURL(backendURL).
-		SetBackendToken(backendToken).
-		SetEnableHack(true).
 		Build()
 	if err != nil {
 		logger.Error(
@@ -309,10 +250,3 @@ func (c *DeploymentManagerServerCommand) run(cmd *cobra.Command, argv []string) 
 
 	return nil
 }
-
-// Names of command line flags:
-const (
-	backendTypeFlagName  = "backend-type"
-	backendTokenFlagName = "backend-token"
-	backendURLFlagName   = "backend-url"
-)

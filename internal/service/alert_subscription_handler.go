@@ -26,7 +26,6 @@ import (
 
 	"github.com/openshift-kni/oran-o2ims/internal/data"
 	"github.com/openshift-kni/oran-o2ims/internal/jq"
-	"github.com/openshift-kni/oran-o2ims/internal/k8s"
 	"github.com/openshift-kni/oran-o2ims/internal/search"
 )
 
@@ -233,22 +232,7 @@ func (h *AlertSubscriptionHandler) fetchItem(ctx context.Context,
 	if err != nil {
 		return
 	}
-	stream, err := k8s.NewStream().
-		SetLogger(h.logger).
-		SetReader(response.Body).
-		Build()
-	if err != nil {
-		return
-	}
-	items, err := data.Collect(ctx, stream)
-	if err != nil {
-		return
-	}
-	if len(items) == 0 {
-		err = ErrNotFound
-		return
-	}
-	result = items[0]
+	result = response.Object
 	return
 }
 
