@@ -80,7 +80,7 @@ func (r *ORANO2IMSReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	nextReconcile = ctrl.Result{RequeueAfter: 5 * time.Minute}
 
 	// Create the needed Ingress if at least one server is required by the Spec.
-	if orano2ims.Spec.MetadataServer || orano2ims.Spec.DeploymentManagerServer {
+	if orano2ims.Spec.MetadataServer || orano2ims.Spec.DeploymentManagerServer || orano2ims.Spec.AlertSubscriptionServer {
 		err = r.createIngress(ctx, orano2ims)
 		if err != nil {
 			r.Log.Error(err, "Failed to deploy Service for Metadata server.")
@@ -146,6 +146,43 @@ func (r *ORANO2IMSReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		err = r.deployManagerServer(ctx, orano2ims)
 		if err != nil {
 			r.Log.Error(err, "Failed to deploy the Deployment Manager server.")
+			return
+		}
+	}
+	// Start the alert subscription server if required by the Spec.
+	if orano2ims.Spec.AlertSubscriptionServer {
+		// Create the client ServiceAccount.
+		err = r.createServiceAccount(ctx, orano2ims, utils.ORANO2IMSClientSAName)
+		if err != nil {
+			r.Log.Error(err, fmt.Sprintf("Failed to deploy ServiceAccount %s for alert subscription server.", utils.ORANO2IMSClientSAName))
+			return
+		}
+
+		// Create authz ConfigMap.
+		err = r.createConfigMap(ctx, orano2ims, utils.ORANO2IMSConfigMapName)
+		if err != nil {
+			r.Log.Error(err, "Failed to deploy ConfigMap for alert subscription server.")
+			return
+		}
+
+		// Create the needed ServiceAccount.
+		err = r.createServiceAccount(ctx, orano2ims, utils.ORANO2IMSAlertSubscriptionServerName)
+		if err != nil {
+			r.Log.Error(err, "Failed to deploy ServiceAccount for Alert Subscription server.")
+			return
+		}
+
+		// Create the Service needed for the alert subscription server.
+		err = r.createService(ctx, orano2ims, utils.ORANO2IMSAlertSubscriptionServerName)
+		if err != nil {
+			r.Log.Error(err, "Failed to deploy Service for Alert Subscription server.")
+			return
+		}
+
+		// Create the alert subscription-server deployment.
+		err = r.deployManagerServer(ctx, orano2ims)
+		if err != nil {
+			r.Log.Error(err, "Failed to deploy the alert subscription server.")
 			return
 		}
 	}

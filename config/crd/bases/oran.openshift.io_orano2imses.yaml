@@ -49,6 +49,9 @@ spec:
               deploymentManagerServer:
                 default: false
                 type: boolean
+              alertSubscriptionServer:
+                default: false
+                type: boolean
               ingressHost:
                 type: string
               metadataServer:
@@ -57,6 +60,7 @@ spec:
             required:
             - cloudId
             - deploymentManagerServer
+            - AlertSubscriptionServer
             - metadataServer
             type: object
           status:

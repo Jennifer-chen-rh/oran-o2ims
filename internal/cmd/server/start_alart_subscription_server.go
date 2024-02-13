@@ -70,7 +70,7 @@ func NewAlertSubscriptionServer() *AlertSubscriptionServerCommand {
 	return &AlertSubscriptionServerCommand{}
 }
 
-// run executes the `start deployment-manager-server` command.
+// run executes the `start alert-subscription-server` command.
 func (c *AlertSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) error {
 	// Get the context:
 	ctx := cmd.Context()
