@@ -15,7 +15,6 @@ License.
 package server
 
 import (
-	"fmt"
 	"log/slog"
 	"net/http"
 
@@ -31,58 +30,42 @@ import (
 	"github.com/openshift-kni/oran-o2ims/internal/service"
 )
 
-// Server creates and returns the `start deployment-manager-server` command.
+// Server creates and returns the `start alert-subscription-server` command.
 func AlertSubscriptionServer() *cobra.Command {
 	c := NewAlertSubscriptionServer()
 	result := &cobra.Command{
-		Use:   "deployment-manager-server",
-		Short: "Starts the deployment manager server",
+		Use:   "Alert-Subscription-server",
+		Short: "Starts the Alert Subscription Server",
 		Args:  cobra.NoArgs,
 		RunE:  c.run,
 	}
 	flags := result.Flags()
-	authentication.AddFlags(flags)
-	authorization.AddFlags(flags)
+
+	// no need for now
+	//authentication.AddFlags(flags)
+	//authorization.AddFlags(flags)
+
 	network.AddListenerFlags(flags, network.APIListener, network.APIAddress)
 	_ = flags.String(
 		cloudIDFlagName,
 		"",
 		"O-Cloud identifier.",
 	)
-	_ = flags.String(
-		backendURLFlagName,
-		"",
-		"URL of the backend server.",
-	)
-	_ = flags.String(
-		backendTypeFlagName,
-		string(service.DeploymentManagerBackendTypeRegularHub),
-		fmt.Sprintf(
-			"Type of backend. Possible values are '%s' and '%s'.",
-			service.DeploymentManagerBackendTypeGlobalHub,
-			service.DeploymentManagerBackendTypeRegularHub,
-		),
-	)
-	_ = flags.String(
-		backendTokenFlagName,
-		"",
-		"Token for authenticating to the backend server.",
-	)
 	_ = flags.StringArray(
 		extensionsFlagName,
 		[]string{},
-		"Extension to add to deployment managers.",
+		"Extension to add to alert subscriptions.",
 	)
 	return result
 }
 
-// DeploymentManagerServerCommand contains the data and logic needed to run the `start
-// deployment-manager-server` command.
+// AlertSubscriptionServerCommand contains the data and logic needed to run the `start
+// alert-subscription-server` command.
 type AlertSubscriptionServerCommand struct {
 }
 
 // NewAlertSubscriptionServer creates a new runner that knows how to execute the `start
-// deployment-manager-server` command.
+// alert-subscription-server` command.
 func NewAlertSubscriptionServer() *AlertSubscriptionServerCommand {
 	return &AlertSubscriptionServerCommand{}
 }
