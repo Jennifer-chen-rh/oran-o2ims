@@ -89,7 +89,7 @@ func (b *AlertSubscriptionHandlerBuilder) SetExtensions(
 	return b
 }
 
-// Build uses the data stored in the builder to create and configure a new handler.
+// Build uses the data stored in the builder to create anad configure a new handler.
 func (b *AlertSubscriptionHandlerBuilder) Build() (
 	result *AlertSubscriptionHandler, err error) {
 	// Check parameters:
@@ -237,17 +237,21 @@ func (h *AlertSubscriptionHandler) fetchItem(ctx context.Context,
 }
 
 // items needs to be investigation
-/*func (h *AlertSubscriptionHandler) fetchItems(
+/*
+func (h *AlertSubscriptionHandler) fetchItems(
 	ctx context.Context) (result data.Stream, err error) {
+	request := &GetRequest{Variables: []string{}}
+	response, err := h.Get(ctx, request)
 	if err != nil {
 		return
 	}
 	result, err = k8s.NewStream().
 		SetLogger(h.logger).
-		SetReader(response.Body).
+		SetReader(response.Object).
 		Build()
 	return
-} */
+}
+*/
 
 func (h *AlertSubscriptionHandler) mapItem(ctx context.Context,
 	input data.Object) (output data.Object, err error) {
