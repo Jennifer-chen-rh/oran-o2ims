@@ -519,6 +519,21 @@ func (r *ORANO2IMSReconciler) createIngress(ctx context.Context, orano2ims *oran
 									},
 								},
 							},
+							{
+								Path: "/o2ims-infrastructureInventory/v1/alertSubscriptions",
+								PathType: func() *networkingv1.PathType {
+									pathType := networkingv1.PathTypePrefix
+									return &pathType
+								}(),
+								Backend: networkingv1.IngressBackend{
+									Service: &networkingv1.IngressServiceBackend{
+										Name: "alert-subscription-server",
+										Port: networkingv1.ServiceBackendPort{
+											Name: utils.ORANO2IMSIngressName,
+										},
+									},
+								},
+							},
 						},
 					},
 				},

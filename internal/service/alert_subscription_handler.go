@@ -152,6 +152,11 @@ func (b *AlertSubscriptionHandlerBuilder) Build() (
 		subscriptionMap:          map[string]data.Object{},
 	}
 
+	b.logger.Debug(
+		"AlertSubscriptionHandler build:",
+		"CloudID", b.cloudID,
+	)
+
 	return
 }
 
@@ -199,6 +204,10 @@ func (h *AlertSubscriptionHandler) RetrieveSubscriptionMapValue(
 func (h *AlertSubscriptionHandler) Get(ctx context.Context,
 	request *GetRequest) (response *GetResponse, err error) {
 
+	h.logger.Debug(
+		"AlertSubscriptionHandler Get:",
+		"id", request.Variables[0],
+	)
 	item, err := h.RetrieveSubscriptionMapValue(request)
 
 	if err != nil {

@@ -183,7 +183,7 @@ func (c *AlertSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) 
 	// Create the routes:
 	adapter, err := service.NewAdapter().
 		SetLogger(logger).
-		SetPathVariables("deploymentManagerID").
+		SetPathVariables("alertSubscriptionID").
 		SetHandler(handler).
 		Build()
 	if err != nil {
@@ -194,11 +194,11 @@ func (c *AlertSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) 
 		return exit.Error(1)
 	}
 	router.Handle(
-		"/o2ims-infrastructureInventory/{version}/deploymentManagers",
+		"/o2ims-infrastructureInventory/{version}/alertSubscriptions",
 		adapter,
 	).Methods(http.MethodGet)
 	router.Handle(
-		"/o2ims-infrastructureInventory/{version}/deploymentManagers/{deploymentManagerID}",
+		"/o2ims-infrastructureInventory/{version}/alertSubscriptions/{alertSubscriptionID}",
 		adapter,
 	).Methods(http.MethodGet)
 
