@@ -34,7 +34,7 @@ import (
 func AlertSubscriptionServer() *cobra.Command {
 	c := NewAlertSubscriptionServer()
 	result := &cobra.Command{
-		Use:   "Alert-Subscription-server",
+		Use:   "alert-subscription-server",
 		Short: "Starts the Alert Subscription Server",
 		Args:  cobra.NoArgs,
 		RunE:  c.run,
