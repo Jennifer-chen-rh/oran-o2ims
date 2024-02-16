@@ -23,6 +23,7 @@ import (
 	"sync"
 
 	jsoniter "github.com/json-iterator/go"
+	"golang.org/x/exp/maps"
 
 	"github.com/openshift-kni/oran-o2ims/internal/data"
 	"github.com/openshift-kni/oran-o2ims/internal/jq"
@@ -211,7 +212,6 @@ func (h *AlertSubscriptionHandler) Get(ctx context.Context,
 
 	h.logger.Debug(
 		"AlertSubscriptionHandler Get:",
-		"id", request.Variables[0],
 	)
 	item, err := h.RetrieveSubscriptionMapValue(request)
 
@@ -253,18 +253,15 @@ func (h *AlertSubscriptionHandler) fetchItem(ctx context.Context,
 // items needs to be investigation
 func (h *AlertSubscriptionHandler) fetchItems(
 	ctx context.Context) (result data.Stream, err error) {
-	request := &GetRequest{Variables: []string{}}
-	//response, err := h.Get(ctx, request)
-	response, err := h.Get(ctx, request)
-	if err != nil {
-		return
-	}
+
+	// need to create array with map value
+	h.subscritionMapMemoryLock.Lock()
+	ar := maps.Values(h.subscriptionMap)
 	h.logger.Debug(
 		"AlertSubscriptionHandler fetchItems:",
-		"Object", response.Object,
 	)
 	//result = data.Stream(response.Object)
-	result = data.Stream(nil)
+	result = data.Pour(ar...)
 	return
 }
 
