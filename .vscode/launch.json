@@ -63,7 +63,9 @@
                         "args": [
                                 "start",
                                 "alert-subscription-server",
+                                "--log-file=servers.log",
                                 "--log-level=debug",
+                                "--log-field=server=alert-subscription",
                                 "--cloud-id=6575154c-72fc-4ed8-9a87-a81885ab38bb"
                         ]
                 },

@@ -22,8 +22,6 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/openshift-kni/oran-o2ims/internal"
-	"github.com/openshift-kni/oran-o2ims/internal/authentication"
-	"github.com/openshift-kni/oran-o2ims/internal/authorization"
 	"github.com/openshift-kni/oran-o2ims/internal/exit"
 	"github.com/openshift-kni/oran-o2ims/internal/logging"
 	"github.com/openshift-kni/oran-o2ims/internal/network"
@@ -132,28 +130,30 @@ func (c *AlertSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) 
 	}
 
 	// Create the authentication and authorization wrappers:
-	authenticationWrapper, err := authentication.NewHandlerWrapper().
-		SetLogger(logger).
-		SetFlags(flags).
-		Build()
-	if err != nil {
-		logger.Error(
-			"Failed to create authentication wrapper",
-			slog.String("error", err.Error()),
-		)
-		return exit.Error(1)
-	}
-	authorizationWrapper, err := authorization.NewHandlerWrapper().
-		SetLogger(logger).
-		SetFlags(flags).
-		Build()
-	if err != nil {
-		logger.Error(
-			"Failed to create authorization wrapper",
-			slog.String("error", err.Error()),
-		)
-		return exit.Error(1)
-	}
+	/*
+		authenticationWrapper, err := authentication.NewHandlerWrapper().
+			SetLogger(logger).
+			SetFlags(flags).
+			Build()
+		if err != nil {
+			logger.Error(
+				"Failed to create authentication wrapper",
+				slog.String("error", err.Error()),
+			)
+			return exit.Error(1)
+		}
+		authorizationWrapper, err := authorization.NewHandlerWrapper().
+			SetLogger(logger).
+			SetFlags(flags).
+			Build()
+		if err != nil {
+			logger.Error(
+				"Failed to create authorization wrapper",
+				slog.String("error", err.Error()),
+			)
+			return exit.Error(1)
+		}
+	*/
 
 	// Create the router:
 	router := mux.NewRouter()
@@ -163,7 +163,7 @@ func (c *AlertSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) 
 	router.MethodNotAllowedHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		service.SendError(w, http.StatusMethodNotAllowed, "Method not allowed")
 	})
-	router.Use(authenticationWrapper, authorizationWrapper)
+	//router.Use(authenticationWrapper, authorizationWrapper)
 
 	// Create the handler:
 	handler, err := service.NewAlertSubscriptionHandler().

@@ -196,7 +196,6 @@ func (h *AlertSubscriptionHandler) RetrieveSubscriptionMapValue(
 		err = ErrNotFound
 		return
 	}
-	err = nil
 	return
 }
 
@@ -246,21 +245,22 @@ func (h *AlertSubscriptionHandler) fetchItem(ctx context.Context,
 }
 
 // items needs to be investigation
-/*
 func (h *AlertSubscriptionHandler) fetchItems(
 	ctx context.Context) (result data.Stream, err error) {
 	request := &GetRequest{Variables: []string{}}
+	//response, err := h.Get(ctx, request)
 	response, err := h.Get(ctx, request)
 	if err != nil {
 		return
 	}
-	result, err = k8s.NewStream().
-		SetLogger(h.logger).
-		SetReader(response.Object).
-		Build()
+	h.logger.Debug(
+		"AlertSubscriptionHandler fetchItems:",
+		"Object", response.Object,
+	)
+	//result = data.Stream(response.Object)
+	result = data.Stream(nil)
 	return
 }
-*/
 
 func (h *AlertSubscriptionHandler) mapItem(ctx context.Context,
 	input data.Object) (output data.Object, err error) {
