@@ -166,6 +166,12 @@ func (h *AlertSubscriptionHandler) List(ctx context.Context,
 	// Create the stream that will fetch the items:
 	var items data.Stream
 
+	items, err = h.fetchItems(ctx)
+
+	if err != nil {
+		return
+	}
+
 	// Transform the items into what we need:
 	items = data.Map(items, h.mapItem)
 
