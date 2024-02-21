@@ -22,12 +22,12 @@ import (
 	"slices"
 	"sync"
 
+	"github.com/google/uuid"
 	jsoniter "github.com/json-iterator/go"
-	"golang.org/x/exp/maps"
-
 	"github.com/openshift-kni/oran-o2ims/internal/data"
 	"github.com/openshift-kni/oran-o2ims/internal/jq"
 	"github.com/openshift-kni/oran-o2ims/internal/search"
+	"golang.org/x/exp/maps"
 )
 
 // DeploymentManagerHandlerBuilder contains the data and logic needed to create a new deployment
@@ -53,6 +53,25 @@ type AlertSubscriptionHandler struct {
 	jqTool                   *jq.Tool
 	subscritionMapMemoryLock *sync.Mutex
 	subscriptionMap          map[string]data.Object
+}
+
+// test go struct for now to populate subscription maps
+type AddRequest struct {
+	// Variables contains the values of the path variables. For example, if the request path is
+	// like this:
+	//
+	//	/o2ims-infrastructureInventory/v1/resourcePools/123/resources/456
+	//
+	// Then it will contain '456' and '123'.
+	//
+	// These path variables are ordered from more specific to less specific, the opposite of
+	// what appears in the request path. This is intended to simplify things because most
+	// handlers will only be interested in the most specific identifier and therefore they
+	// can just use index zero.
+	variables []string
+
+	// Object is the definition of the object.
+	object data.Object
 }
 
 // NewAlertSubscriptionHandler creates a builder that can then be used to configure and create a
@@ -250,23 +269,62 @@ func (h *AlertSubscriptionHandler) fetchItem(ctx context.Context,
 	return
 }
 
-// items needs to be investigation
 func (h *AlertSubscriptionHandler) fetchItems(
 	ctx context.Context) (result data.Stream, err error) {
-
-	// need to create array with map value
 	h.subscritionMapMemoryLock.Lock()
+	defer h.subscritionMapMemoryLock.Unlock()
 	ar := maps.Values(h.subscriptionMap)
 	h.logger.Debug(
 		"AlertSubscriptionHandler fetchItems:",
 	)
-	//result = data.Stream(response.Object)
 	result = data.Pour(ar...)
+	return
+}
+
+func (h *AlertSubscriptionHandler) getSubcriptionId() (subId string) {
+	subId = uuid.New().String()
+	return
+}
+
+func (h *AlertSubscriptionHandler) addItem(
+	ctx context.Context, input_data AddRequest) (subId string, err error) {
+
+	subId = h.getSubcriptionId()
+	object, err := h.mapItem(ctx, input_data.object)
+	if err != nil {
+		return
+	}
+	h.subscritionMapMemoryLock.Lock()
+	defer h.subscritionMapMemoryLock.Unlock()
+
+	h.subscriptionMap[subId] = object
+
 	return
 }
 
 func (h *AlertSubscriptionHandler) mapItem(ctx context.Context,
 	input data.Object) (output data.Object, err error) {
 
-	return input, nil
+	//decode/convert based on test go data object
+	//get cluster name
+	var cluster_name string
+	err = h.jqTool.Evaluate(`.metadata.name`, input, &cluster_name)
+	if err != nil {
+		return
+	}
+
+	//get cluster name, subscriptions
+	err = h.jqTool.Evaluate(
+		`{
+			"cluster_name": $cluster_name
+			"subscriptions": .spec.AlertSubscriptionConfigs
+		}`,
+		input, &output,
+		jq.String("$cluster_name", cluster_name),
+	)
+	if err != nil {
+		return
+	}
+
+	return output, nil
 }

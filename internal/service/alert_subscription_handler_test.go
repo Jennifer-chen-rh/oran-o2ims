@@ -75,37 +75,7 @@ var _ = Describe("Alert Subscription handler", func() {
 
 		Describe("List", func() {
 
-			It("Uses the right path", func() {
-				// Prepare a backend:
-				backend.AppendHandlers(
-					CombineHandlers(
-						VerifyRequest(
-							http.MethodGet,
-							"/apis/cluster.open-cluster-management.io/v1/managedclusters",
-						),
-						RespondWithList(),
-					),
-				)
-
-				// Create the handler:
-				handler, err := NewAlertSubscriptionHandler().
-					SetLogger(logger).
-					SetCloudID("123").
-					Build()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(handler).ToNot(BeNil())
-
-				// Send the request. Note that we ignore the error here because
-				// all we care about here in this test is that it uses the right
-				// URL path, no matter what is the result.
-				_, _ = handler.List(ctx, &ListRequest{})
-			})
-
 			It("Translates empty list of results", func() {
-				// Prepare a backend:
-				backend.AppendHandlers(
-					RespondWithList(),
-				)
 
 				// Create the handler:
 				handler, err := NewAlertSubscriptionHandler().
@@ -125,37 +95,32 @@ var _ = Describe("Alert Subscription handler", func() {
 			})
 
 			It("Translates non empty list of results", func() {
-				// Prepare a backend:
-				backend.AppendHandlers(
-					CombineHandlers(
-						RespondWithList(
-							data.Object{
-								"metadata": data.Object{
-									"name": "my-cluster",
-								},
-								"spec": data.Object{
-									"managedClusterClientConfigs": data.Array{
-										data.Object{
-											"url": "https://my-cluster:6443",
-										},
-									},
-								},
-							},
-							data.Object{
-								"metadata": data.Object{
-									"name": "your-cluster",
-								},
-								"spec": data.Object{
-									"managedClusterClientConfigs": data.Array{
-										data.Object{
-											"url": "https://your-cluster:6443",
-										},
-									},
-								},
-							},
-						),
-					),
+				// Create the handler:
+				handler, err := NewAlertSubscriptionHandler().
+					SetLogger(logger).
+					SetCloudID("123").
+					Build()
+				Expect(err).ToNot(HaveOccurred())
+				Expect(handler).ToNot(BeNil())
+
+				// pre-populate the subscript map
+				req_1 := AddRequest(nil,
+					data.Object{
+						"customerId": "test_customer_id_prime",
+					},
 				)
+				/*
+					                req_2 := AddRequest(nil,
+										data.Object{
+											"customerId": "test_custer_id",
+											"filter": data.Object{
+												"notificationType": "1",
+												"nsInstanceId": "test_instance_id",
+												"status": "active",
+										    },
+										}
+									)
+				*/
 
 				// Create the handler:
 				handler, err := NewAlertSubscriptionHandler().
@@ -164,6 +129,8 @@ var _ = Describe("Alert Subscription handler", func() {
 					Build()
 				Expect(err).ToNot(HaveOccurred())
 				Expect(handler).ToNot(BeNil())
+
+				handler.addItem(ctx, req_1)
 
 				// Send the request and verify the result:
 				response, err := handler.List(ctx, &ListRequest{})
@@ -261,17 +228,6 @@ var _ = Describe("Alert Subscription handler", func() {
 			})
 
 			It("Uses the right path", func() {
-				// Prepare a backend:
-				backend.AppendHandlers(
-					CombineHandlers(
-						VerifyRequest(
-							http.MethodGet,
-							"/apis/cluster.open-cluster-management.io/v1/managedclusters/123",
-						),
-						RespondWithObject(data.Object{}),
-					),
-				)
-
 				// Create the handler:
 				handler, err := NewAlertSubscriptionHandler().
 					SetLogger(logger).
