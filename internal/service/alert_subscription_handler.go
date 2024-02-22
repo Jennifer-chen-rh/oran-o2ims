@@ -286,23 +286,8 @@ func (h *AlertSubscriptionHandler) getSubcriptionId() (subId string) {
 	return
 }
 
-func (h *AlertSubscriptionHandler) addItem(
-	ctx context.Context, input_data AddRequest) (subId string, err error) {
-
-	subId = h.getSubcriptionId()
-	object, err := h.encodeSubId(ctx, subId, input_data.Object)
-	if err != nil {
-		return
-	}
-
-	object, err = h.mapItem(ctx, object)
-	h.subscritionMapMemoryLock.Lock()
-	defer h.subscritionMapMemoryLock.Unlock()
-	h.subscriptionMap[subId] = object
-
-	return
-}
-
+// Not sure if we need this in the future
+// add it for now for the test purpose
 func (h *AlertSubscriptionHandler) encodeSubId(ctx context.Context,
 	subId string, input data.Object) (output data.Object, err error) {
 	//get cluster name, subscriptions
@@ -321,7 +306,36 @@ func (h *AlertSubscriptionHandler) encodeSubId(ctx context.Context,
 	return
 }
 
+func (h *AlertSubscriptionHandler) decodeSubId(ctx context.Context,
+	input data.Object) (output string, err error) {
+	//get cluster name, subscriptions
+	err = h.jqTool.Evaluate(
+		`.alarmSubscriptionId`, input, &output)
+	if err != nil {
+		return
+	}
+	return
+}
+func (h *AlertSubscriptionHandler) addItem(
+	ctx context.Context, input_data AddRequest) (subId string, err error) {
+
+	subId = h.getSubcriptionId()
+	object, err := h.encodeSubId(ctx, subId, input_data.Object)
+	if err != nil {
+		return
+	}
+
+	object, err = h.mapItem(ctx, object)
+	h.subscritionMapMemoryLock.Lock()
+	defer h.subscritionMapMemoryLock.Unlock()
+	h.subscriptionMap[subId] = object
+
+	return
+}
+
 func (h *AlertSubscriptionHandler) mapItem(ctx context.Context,
 	input data.Object) (output data.Object, err error) {
+
+	//TBD only save related attributes in the future
 	return input, nil
 }

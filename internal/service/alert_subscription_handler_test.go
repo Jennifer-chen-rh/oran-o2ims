@@ -19,10 +19,7 @@ import (
 
 	. "github.com/onsi/ginkgo/v2/dsl/core"
 	. "github.com/onsi/gomega"
-	. "github.com/onsi/gomega/ghttp"
-
 	"github.com/openshift-kni/oran-o2ims/internal/data"
-	. "github.com/openshift-kni/oran-o2ims/internal/testing"
 )
 
 var _ = Describe("Alert Subscription handler", func() {
@@ -52,8 +49,7 @@ var _ = Describe("Alert Subscription handler", func() {
 
 	Describe("Behaviour", func() {
 		var (
-			ctx     context.Context
-			backend *Server
+			ctx context.Context
 		)
 
 		BeforeEach(func() {
@@ -93,30 +89,37 @@ var _ = Describe("Alert Subscription handler", func() {
 				Expect(handler).ToNot(BeNil())
 
 				// pre-populate the subscript map
-				req_1 := AddRequest{nil,
-					data.Object{
-						"customerId": "test_customer_id_prime",
-					},
+
+				obj_1 := data.Object{
+					"customerId": "test_customer_id_prime",
 				}
-				req_2 := AddRequest{nil, data.Object{
+				obj_2 := data.Object{
 					"customerId": "test_custer_id",
 					"filter": data.Object{
 						"notificationType": "1",
 						"nsInstanceId":     "test_instance_id",
 						"status":           "active",
 					},
-				},
 				}
+				req_1 := AddRequest{nil, obj_1}
+				req_2 := AddRequest{nil, obj_2}
 
 				subId_1, err := handler.addItem(ctx, req_1)
-				if err != nil {
-					return
-				}
+				Expect(err).ToNot(HaveOccurred())
 
 				subId_2, err := handler.addItem(ctx, req_2)
-				if err != nil {
-					return
-				}
+				Expect(err).ToNot(HaveOccurred())
+
+				obj_1, err = handler.encodeSubId(ctx, subId_1, obj_1)
+				Expect(err).ToNot(HaveOccurred())
+				obj_2, err = handler.encodeSubId(ctx, subId_2, obj_2)
+				Expect(err).ToNot(HaveOccurred())
+
+				subIdMap := map[string]data.Object{}
+				subIdMap[subId_2] = obj_2
+				subIdMap[subId_1] = obj_1
+
+				//subIdArray := maps.Keys(subIdMap)
 
 				// Send the request and verify the result:
 				response, err := handler.List(ctx, &ListRequest{})
@@ -125,19 +128,12 @@ var _ = Describe("Alert Subscription handler", func() {
 				items, err := data.Collect(ctx, response.Items)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(items).To(HaveLen(2))
-				Expect(items[0]).To(Equal(data.Object{
-					"alarmSubscriptionId": subId_1,
-					"customerId":          "test_customer_id_prime",
-					"filter": data.Object{
-						"notificationType": "1",
-						"nsInstanceId":     "test_instance_id",
-						"status":           "active",
-					},
-				}))
-				Expect(items[1]).To(Equal(data.Object{
-					"alarmSubscriptionId": subId_2,
-					"customerId":          "test_customer_id",
-				}))
+				id, err := handler.decodeSubId(ctx, items[0])
+				Expect(err).ToNot(HaveOccurred())
+				Expect(items[0]).To(Equal(subIdMap[id]))
+				id, err = handler.decodeSubId(ctx, items[1])
+				Expect(err).ToNot(HaveOccurred())
+				Expect(items[1]).To(Equal(subIdMap[id]))
 			})
 
 			/* tbd
@@ -226,47 +222,6 @@ var _ = Describe("Alert Subscription handler", func() {
 				_, _ = handler.Get(ctx, &GetRequest{
 					Variables: []string{"123"},
 				})
-			})
-
-			It("Translates result", func() {
-				// Prepare a backend:
-				backend.AppendHandlers(
-					CombineHandlers(
-						RespondWithObject(data.Object{
-							"metadata": data.Object{
-								"name": "my-cluster",
-							},
-							"spec": data.Object{
-								"managedClusterClientConfigs": data.Array{
-									data.Object{
-										"url": "https://my-cluster:6443",
-									},
-								},
-							},
-						}),
-					),
-				)
-
-				// Create the handler:
-				handler, err := NewAlertSubscriptionHandler().
-					SetLogger(logger).
-					SetCloudID("123").
-					Build()
-				Expect(err).ToNot(HaveOccurred())
-
-				// Send the request and verify the result:
-				response, err := handler.Get(ctx, &GetRequest{
-					Variables: []string{"123"},
-				})
-				Expect(err).ToNot(HaveOccurred())
-				Expect(response).ToNot(BeNil())
-				Expect(response.Object).To(Equal(data.Object{
-					"deploymentManagerId": "my-cluster",
-					"description":         "my-cluster",
-					"name":                "my-cluster",
-					"oCloudId":            "123",
-					"serviceUri":          "https://my-cluster:6443",
-				}))
 			})
 
 			/*tbd
