@@ -88,8 +88,7 @@ var _ = Describe("Alert Subscription handler", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(handler).ToNot(BeNil())
 
-				// pre-populate the subscript map
-
+				// pre-populate the subscription map
 				obj_1 := data.Object{
 					"customerId": "test_customer_id_prime",
 				}
@@ -192,7 +191,7 @@ var _ = Describe("Alert Subscription handler", func() {
 		})
 
 		Describe("Get", func() {
-			It("Uses the configured token", func() {
+			It("Creat the alart subscription", func() {
 				// Create the handler:
 				handler, err := NewAlertSubscriptionHandler().
 					SetLogger(logger).
@@ -204,24 +203,40 @@ var _ = Describe("Alert Subscription handler", func() {
 				// all we care about in this test is that it sends the token, no
 				// matter what is the response.
 				_, _ = handler.Get(ctx, &GetRequest{
-					Variables: []string{"123"},
+					Variables: []string{"test"},
 				})
 			})
 
-			It("Uses the right path", func() {
+			It("Uses the right search id ", func() {
 				// Create the handler:
 				handler, err := NewAlertSubscriptionHandler().
 					SetLogger(logger).
 					SetCloudID("123").
 					Build()
 				Expect(err).ToNot(HaveOccurred())
+				obj_1 := data.Object{
+					"customerId": "test_custer_id",
+					"filter": data.Object{
+						"notificationType": "1",
+						"nsInstanceId":     "test_instance_id",
+						"status":           "active",
+					},
+				}
+				req_1 := AddRequest{nil, obj_1}
+
+				subId_1, err := handler.addItem(ctx, req_1)
+				Expect(err).ToNot(HaveOccurred())
+				obj_1, err = handler.encodeSubId(ctx, subId_1, obj_1)
+				Expect(err).ToNot(HaveOccurred())
 
 				// Send the request. Note that we ignore the error here because
 				// all we care about in this test is that it uses the right URL
 				// path, no matter what is the response.
-				_, _ = handler.Get(ctx, &GetRequest{
-					Variables: []string{"123"},
+				resp, err := handler.Get(ctx, &GetRequest{
+					Variables: []string{subId_1},
 				})
+				Expect(err).ToNot(HaveOccurred())
+				Expect(resp.Object).To(Equal(obj_1))
 			})
 
 			/*tbd
