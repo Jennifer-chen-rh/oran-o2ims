@@ -28,12 +28,12 @@ import (
 	"github.com/openshift-kni/oran-o2ims/internal/service"
 )
 
-// Server creates and returns the `start alert-subscription-server` command.
-func AlertSubscriptionServer() *cobra.Command {
-	c := NewAlertSubscriptionServer()
+// Server creates and returns the `start alarm-subscription-server` command.
+func AlarmSubscriptionServer() *cobra.Command {
+	c := NewAlarmSubscriptionServer()
 	result := &cobra.Command{
-		Use:   "alert-subscription-server",
-		Short: "Starts the Alert Subscription Server",
+		Use:   "alarm-subscription-server",
+		Short: "Starts the alarm Subscription Server",
 		Args:  cobra.NoArgs,
 		RunE:  c.run,
 	}
@@ -52,24 +52,24 @@ func AlertSubscriptionServer() *cobra.Command {
 	_ = flags.StringArray(
 		extensionsFlagName,
 		[]string{},
-		"Extension to add to alert subscriptions.",
+		"Extension to add to alarm subscriptions.",
 	)
 	return result
 }
 
-// AlertSubscriptionServerCommand contains the data and logic needed to run the `start
-// alert-subscription-server` command.
-type AlertSubscriptionServerCommand struct {
+// alarmSubscriptionServerCommand contains the data and logic needed to run the `start
+// alarm-subscription-server` command.
+type AlarmSubscriptionServerCommand struct {
 }
 
-// NewAlertSubscriptionServer creates a new runner that knows how to execute the `start
-// alert-subscription-server` command.
-func NewAlertSubscriptionServer() *AlertSubscriptionServerCommand {
-	return &AlertSubscriptionServerCommand{}
+// NewAlarmSubscriptionServer creates a new runner that knows how to execute the `start
+// alarm-subscription-server` command.
+func NewAlarmSubscriptionServer() *AlarmSubscriptionServerCommand {
+	return &AlarmSubscriptionServerCommand{}
 }
 
-// run executes the `start alert-subscription-server` command.
-func (c *AlertSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) error {
+// run executes the `start alarm-subscription-server` command.
+func (c *AlarmSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) error {
 	// Get the context:
 	ctx := cmd.Context()
 
@@ -112,7 +112,7 @@ func (c *AlertSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) 
 		return exit.Error(1)
 	}
 	logger.Info(
-		"Alert subscription extensions details",
+		"alarm subscription extensions details",
 		slog.Any("extensions", extensions),
 	)
 
@@ -166,7 +166,7 @@ func (c *AlertSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) 
 	//router.Use(authenticationWrapper, authorizationWrapper)
 
 	// Create the handler:
-	handler, err := service.NewAlertSubscriptionHandler().
+	handler, err := service.NewAlarmSubscriptionHandler().
 		SetLogger(logger).
 		SetLoggingWrapper(loggingWrapper).
 		SetCloudID(cloudID).
@@ -183,7 +183,7 @@ func (c *AlertSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) 
 	// Create the routes:
 	adapter, err := service.NewAdapter().
 		SetLogger(logger).
-		SetPathVariables("alertSubscriptionID").
+		SetPathVariables("alarmSubscriptionID").
 		SetHandler(handler).
 		Build()
 	if err != nil {
@@ -194,11 +194,11 @@ func (c *AlertSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) 
 		return exit.Error(1)
 	}
 	router.Handle(
-		"/o2ims-infrastructureInventory/{version}/alertSubscriptions",
+		"/o2ims-infrastructureInventory/{version}/alarmSubscriptions",
 		adapter,
 	).Methods(http.MethodGet)
 	router.Handle(
-		"/o2ims-infrastructureInventory/{version}/alertSubscriptions/{alertSubscriptionID}",
+		"/o2ims-infrastructureInventory/{version}/alarmSubscriptions/{alarmSubscriptionID}",
 		adapter,
 	).Methods(http.MethodGet)
 

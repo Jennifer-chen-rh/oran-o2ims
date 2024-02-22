@@ -41,7 +41,7 @@ type alarmSubscriptionHandlerBuilder struct {
 }
 
 // alarmSubscriptionHander knows how to respond to requests to list deployment managers.
-// Don't create instances of this type directly, use the NewalarmSubscriptionHandler function
+// Don't create instances of this type directly, use the NewAlarmSubscriptionHandler function
 // instead.
 type alarmSubscriptionHandler struct {
 	logger                   *slog.Logger
@@ -74,9 +74,9 @@ type AddRequest struct {
 	Object data.Object
 }
 
-// NewalarmSubscriptionHandler creates a builder that can then be used to configure and create a
+// NewAlarmSubscriptionHandler creates a builder that can then be used to configure and create a
 // handler for the collection of deployment managers.
-func NewalarmSubscriptionHandler() *alarmSubscriptionHandlerBuilder {
+func NewAlarmSubscriptionHandler() *alarmSubscriptionHandlerBuilder {
 	return &alarmSubscriptionHandlerBuilder{}
 }
 

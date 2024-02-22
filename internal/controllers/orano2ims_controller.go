@@ -80,7 +80,7 @@ func (r *ORANO2IMSReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	nextReconcile = ctrl.Result{RequeueAfter: 5 * time.Minute}
 
 	// Create the needed Ingress if at least one server is required by the Spec.
-	if orano2ims.Spec.MetadataServer || orano2ims.Spec.DeploymentManagerServer || orano2ims.Spec.AlertSubscriptionServer {
+	if orano2ims.Spec.MetadataServer || orano2ims.Spec.DeploymentManagerServer || orano2ims.Spec.AlarmSubscriptionServer {
 		err = r.createIngress(ctx, orano2ims)
 		if err != nil {
 			r.Log.Error(err, "Failed to deploy Service for Metadata server.")
@@ -150,7 +150,7 @@ func (r *ORANO2IMSReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 	}
 	// Start the alert subscription server if required by the Spec.
-	if orano2ims.Spec.AlertSubscriptionServer {
+	if orano2ims.Spec.AlarmSubscriptionServer {
 		// Create the client ServiceAccount.
 		err = r.createServiceAccount(ctx, orano2ims, utils.ORANO2IMSClientSAName)
 		if err != nil {
@@ -166,16 +166,16 @@ func (r *ORANO2IMSReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 
 		// Create the needed ServiceAccount.
-		err = r.createServiceAccount(ctx, orano2ims, utils.ORANO2IMSAlertSubscriptionServerName)
+		err = r.createServiceAccount(ctx, orano2ims, utils.ORANO2IMSAlarmSubscriptionServerName)
 		if err != nil {
-			r.Log.Error(err, "Failed to deploy ServiceAccount for Alert Subscription server.")
+			r.Log.Error(err, "Failed to deploy ServiceAccount for Alarm Subscription server.")
 			return
 		}
 
 		// Create the Service needed for the alert subscription server.
-		err = r.createService(ctx, orano2ims, utils.ORANO2IMSAlertSubscriptionServerName)
+		err = r.createService(ctx, orano2ims, utils.ORANO2IMSAlarmSubscriptionServerName)
 		if err != nil {
-			r.Log.Error(err, "Failed to deploy Service for Alert Subscription server.")
+			r.Log.Error(err, "Failed to deploy Service for Alarm Subscription server.")
 			return
 		}
 

@@ -25,7 +25,7 @@ import (
 var _ = Describe("alarm Subscription handler", func() {
 	Describe("Creation", func() {
 		It("Can't be created without a logger", func() {
-			handler, err := NewalarmSubscriptionHandler().
+			handler, err := NewAlarmSubscriptionHandler().
 				SetCloudID("123").
 				Build()
 			Expect(err).To(HaveOccurred())
@@ -36,7 +36,7 @@ var _ = Describe("alarm Subscription handler", func() {
 		})
 
 		It("Can't be created without a cloud identifier", func() {
-			handler, err := NewalarmSubscriptionHandler().
+			handler, err := NewAlarmSubscriptionHandler().
 				SetLogger(logger).
 				Build()
 			Expect(err).To(HaveOccurred())
@@ -63,7 +63,7 @@ var _ = Describe("alarm Subscription handler", func() {
 			It("Translates empty list of results", func() {
 
 				// Create the handler:
-				handler, err := NewalarmSubscriptionHandler().
+				handler, err := NewAlarmSubscriptionHandler().
 					SetLogger(logger).
 					SetCloudID("123").
 					Build()
@@ -81,7 +81,7 @@ var _ = Describe("alarm Subscription handler", func() {
 
 			It("Translates non empty list of results", func() {
 				// Create the handler:
-				handler, err := NewalarmSubscriptionHandler().
+				handler, err := NewAlarmSubscriptionHandler().
 					SetLogger(logger).
 					SetCloudID("123").
 					Build()
@@ -162,7 +162,7 @@ var _ = Describe("alarm Subscription handler", func() {
 				)
 
 				// Create the handler:
-				handler, err := NewalarmSubscriptionsHandler().
+				handler, err := NewAlarmSubscriptionsHandler().
 					SetLogger(logger).
 					SetCloudID("123").
 					SetBackendURL(backend.URL()).
@@ -193,7 +193,7 @@ var _ = Describe("alarm Subscription handler", func() {
 		Describe("Get", func() {
 			It("Creat the alart subscription", func() {
 				// Create the handler:
-				handler, err := NewalarmSubscriptionHandler().
+				handler, err := NewAlarmSubscriptionHandler().
 					SetLogger(logger).
 					SetCloudID("123").
 					Build()
@@ -209,7 +209,7 @@ var _ = Describe("alarm Subscription handler", func() {
 
 			It("Uses the right search id ", func() {
 				// Create the handler:
-				handler, err := NewalarmSubscriptionHandler().
+				handler, err := NewAlarmSubscriptionHandler().
 					SetLogger(logger).
 					SetCloudID("123").
 					Build()
@@ -266,7 +266,7 @@ var _ = Describe("alarm Subscription handler", func() {
 				)
 
 				// Create the handler:
-				handler, err := NewalarmSubscriptionHandler().
+				handler, err := NewAlarmSubscriptionHandler().
 					SetLogger(logger).
 					SetCloudID("123").
 					SetExtensions(
