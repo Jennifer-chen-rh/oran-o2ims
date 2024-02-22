@@ -68,10 +68,10 @@ type AddRequest struct {
 	// what appears in the request path. This is intended to simplify things because most
 	// handlers will only be interested in the most specific identifier and therefore they
 	// can just use index zero.
-	variables []string
+	Variables []string
 
 	// Object is the definition of the object.
-	object data.Object
+	Object data.Object
 }
 
 // NewAlertSubscriptionHandler creates a builder that can then be used to configure and create a
@@ -239,10 +239,10 @@ func (h *AlertSubscriptionHandler) Get(ctx context.Context,
 	}
 
 	// Transform the object into what we need:
-	item, err = h.mapItem(ctx, item)
+	/*item, err = h.mapItem(ctx, item)
 	if err != nil {
 		return
-	}
+	}*/
 
 	// Return the result:
 	response = &GetResponse{
@@ -290,41 +290,38 @@ func (h *AlertSubscriptionHandler) addItem(
 	ctx context.Context, input_data AddRequest) (subId string, err error) {
 
 	subId = h.getSubcriptionId()
-	object, err := h.mapItem(ctx, input_data.object)
+	object, err := h.encodeSubId(ctx, subId, input_data.Object)
 	if err != nil {
 		return
 	}
+
+	object, err = h.mapItem(ctx, object)
 	h.subscritionMapMemoryLock.Lock()
 	defer h.subscritionMapMemoryLock.Unlock()
-
 	h.subscriptionMap[subId] = object
 
 	return
 }
 
-func (h *AlertSubscriptionHandler) mapItem(ctx context.Context,
-	input data.Object) (output data.Object, err error) {
-
-	//decode/convert based on test go data object
-	//get cluster name
-	var cluster_name string
-	err = h.jqTool.Evaluate(`.metadata.name`, input, &cluster_name)
-	if err != nil {
-		return
-	}
-
+func (h *AlertSubscriptionHandler) encodeSubId(ctx context.Context,
+	subId string, input data.Object) (output data.Object, err error) {
 	//get cluster name, subscriptions
 	err = h.jqTool.Evaluate(
 		`{
-			"cluster_name": $cluster_name
-			"subscriptions": .spec.AlertSubscriptionConfigs
+			"alarmSubscriptionId": $alarmSubId,
+			"clustomerId": .customerId,
+			"filter": .filter
 		}`,
 		input, &output,
-		jq.String("$cluster_name", cluster_name),
+		jq.String("$alarmSubId", subId),
 	)
 	if err != nil {
 		return
 	}
+	return
+}
 
-	return output, nil
+func (h *AlertSubscriptionHandler) mapItem(ctx context.Context,
+	input data.Object) (output data.Object, err error) {
+	return input, nil
 }

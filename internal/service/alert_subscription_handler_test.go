@@ -16,11 +16,9 @@ package service
 
 import (
 	"context"
-	"net/http"
 
 	. "github.com/onsi/ginkgo/v2/dsl/core"
 	. "github.com/onsi/gomega"
-	"github.com/onsi/gomega/ghttp"
 	. "github.com/onsi/gomega/ghttp"
 
 	"github.com/openshift-kni/oran-o2ims/internal/data"
@@ -64,15 +62,6 @@ var _ = Describe("Alert Subscription handler", func() {
 
 		})
 
-		// RespondWithList creates a handler that responds with the given search results.
-		var RespondWithList = func(items ...data.Object) http.HandlerFunc {
-			return ghttp.RespondWithJSONEncoded(http.StatusOK, data.Object{
-				"apiVersion": "v1",
-				"kind":       "List",
-				"items":      items,
-			})
-		}
-
 		Describe("List", func() {
 
 			It("Translates empty list of results", func() {
@@ -104,33 +93,30 @@ var _ = Describe("Alert Subscription handler", func() {
 				Expect(handler).ToNot(BeNil())
 
 				// pre-populate the subscript map
-				req_1 := AddRequest(nil,
+				req_1 := AddRequest{nil,
 					data.Object{
 						"customerId": "test_customer_id_prime",
 					},
-				)
-				/*
-					                req_2 := AddRequest(nil,
-										data.Object{
-											"customerId": "test_custer_id",
-											"filter": data.Object{
-												"notificationType": "1",
-												"nsInstanceId": "test_instance_id",
-												"status": "active",
-										    },
-										}
-									)
-				*/
+				}
+				req_2 := AddRequest{nil, data.Object{
+					"customerId": "test_custer_id",
+					"filter": data.Object{
+						"notificationType": "1",
+						"nsInstanceId":     "test_instance_id",
+						"status":           "active",
+					},
+				},
+				}
 
-				// Create the handler:
-				handler, err := NewAlertSubscriptionHandler().
-					SetLogger(logger).
-					SetCloudID("123").
-					Build()
-				Expect(err).ToNot(HaveOccurred())
-				Expect(handler).ToNot(BeNil())
+				subId_1, err := handler.addItem(ctx, req_1)
+				if err != nil {
+					return
+				}
 
-				handler.addItem(ctx, req_1)
+				subId_2, err := handler.addItem(ctx, req_2)
+				if err != nil {
+					return
+				}
 
 				// Send the request and verify the result:
 				response, err := handler.List(ctx, &ListRequest{})
@@ -140,18 +126,17 @@ var _ = Describe("Alert Subscription handler", func() {
 				Expect(err).ToNot(HaveOccurred())
 				Expect(items).To(HaveLen(2))
 				Expect(items[0]).To(Equal(data.Object{
-					"deploymentManagerId": "my-cluster",
-					"description":         "my-cluster",
-					"name":                "my-cluster",
-					"oCloudId":            "123",
-					"serviceUri":          "https://my-cluster:6443",
+					"alarmSubscriptionId": subId_1,
+					"customerId":          "test_customer_id_prime",
+					"filter": data.Object{
+						"notificationType": "1",
+						"nsInstanceId":     "test_instance_id",
+						"status":           "active",
+					},
 				}))
 				Expect(items[1]).To(Equal(data.Object{
-					"deploymentManagerId": "your-cluster",
-					"description":         "your-cluster",
-					"name":                "your-cluster",
-					"oCloudId":            "123",
-					"serviceUri":          "https://your-cluster:6443",
+					"alarmSubscriptionId": subId_2,
+					"customerId":          "test_customer_id",
 				}))
 			})
 
