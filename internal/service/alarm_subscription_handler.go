@@ -194,6 +194,7 @@ func (h *alarmSubscriptionHandler) List(ctx context.Context,
 	return
 }
 
+/* to be deleted
 func (h *alarmSubscriptionHandler) RetrieveSubscriptionMapValue(
 	request *GetRequest) (item data.Object, err error) {
 	h.subscritionMapMemoryLock.Lock()
@@ -205,6 +206,7 @@ func (h *alarmSubscriptionHandler) RetrieveSubscriptionMapValue(
 	}
 	return
 }
+*/
 
 // Get is the implementation of the object handler interface.
 func (h *alarmSubscriptionHandler) Get(ctx context.Context,
@@ -213,17 +215,7 @@ func (h *alarmSubscriptionHandler) Get(ctx context.Context,
 	h.logger.Debug(
 		"alarmSubscriptionHandler Get:",
 	)
-	item, err := h.RetrieveSubscriptionMapValue(request)
-
-	if err != nil {
-		return
-	}
-
-	// Transform the object into what we need:
-	/*item, err = h.mapItem(ctx, item)
-	if err != nil {
-		return
-	}*/
+	item, err := h.fetchItem(ctx, request.Variables[0])
 
 	// Return the result:
 	response = &GetResponse{
@@ -234,19 +226,13 @@ func (h *alarmSubscriptionHandler) Get(ctx context.Context,
 
 func (h *alarmSubscriptionHandler) fetchItem(ctx context.Context,
 	id string) (result data.Object, err error) {
-	// Currently the ACM global hub API that we use doesn't have a specific endpoint for
-	// retrieving a specific object, instead of that we need to fetch a list filtering with a
-	// label selector.
-	/* query := neturl.Values{}
-	query.Set("labelSelector", fmt.Sprintf("clusterID=%s", id))
-	query.Set("limit", "1") */
-
-	request := &GetRequest{Variables: []string{id}}
-	response, err := h.Get(ctx, request)
-	if err != nil {
+	h.subscritionMapMemoryLock.Lock()
+	defer h.subscritionMapMemoryLock.Unlock()
+	result, ok := h.subscriptionMap[id]
+	if !ok {
+		err = ErrNotFound
 		return
 	}
-	result = response.Object
 	return
 }
 

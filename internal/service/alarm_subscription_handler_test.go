@@ -137,56 +137,6 @@ var _ = Describe("alarm Subscription handler", func() {
 
 			/* tbd
 			It("Adds configurable extensions", func() {
-				// Prepare a backend:
-				backend.AppendHandlers(
-					CombineHandlers(
-						RespondWithList(data.Object{
-							"metadata": data.Object{
-								"name": "my-cluster",
-								"labels": data.Object{
-									"country": "ES",
-								},
-								"annotations": data.Object{
-									"region": "Madrid",
-								},
-							},
-							"spec": data.Object{
-								"managedClusterClientConfigs": data.Array{
-									data.Object{
-										"url": "https://my-cluster:6443",
-									},
-								},
-							},
-						}),
-					),
-				)
-
-				// Create the handler:
-				handler, err := NewAlarmSubscriptionsHandler().
-					SetLogger(logger).
-					SetCloudID("123").
-					SetBackendURL(backend.URL()).
-					SetBackendToken("my-token").
-					SetExtensions(
-						`{
-							"country": .metadata.labels["country"],
-							"region": .metadata.annotations["region"]
-						}`,
-						`{
-							"fixed": 123
-						}`).
-					Build()
-				Expect(err).ToNot(HaveOccurred())
-
-				// Send the request and verify the result:
-				response, err := handler.List(ctx, &ListRequest{})
-				Expect(err).ToNot(HaveOccurred())
-				items, err := data.Collect(ctx, response.Items)
-				Expect(err).ToNot(HaveOccurred())
-				Expect(items).To(HaveLen(1))
-				Expect(items[0]).To(MatchJQ(`.extensions.country`, "ES"))
-				Expect(items[0]).To(MatchJQ(`.extensions.region`, "Madrid"))
-				Expect(items[0]).To(MatchJQ(`.extensions.fixed`, 123))
 			}) */
 		})
 
@@ -202,9 +152,13 @@ var _ = Describe("alarm Subscription handler", func() {
 				// Send the request. Note that we ignore the error here because
 				// all we care about in this test is that it sends the token, no
 				// matter what is the response.
-				_, _ = handler.Get(ctx, &GetRequest{
-					Variables: []string{"test"},
+				resp, err := handler.Get(ctx, &GetRequest{
+					Variables: []string{"negtive_test"},
 				})
+				msg := err.Error()
+				Expect(msg).To(Equal("not found"))
+				Expect(resp.Object).To(BeEmpty())
+
 			})
 
 			It("Uses the right search id ", func() {
@@ -241,55 +195,8 @@ var _ = Describe("alarm Subscription handler", func() {
 
 			/*tbd
 			It("Adds configurable extensions", func() {
-				// Prepare a backend:
-				backend.AppendHandlers(
-					CombineHandlers(
-						RespondWithObject(data.Object{
-							"metadata": data.Object{
-								"name": "my-cluster",
-								"labels": data.Object{
-									"country": "ES",
-								},
-								"annotations": data.Object{
-									"region": "Madrid",
-								},
-							},
-							"spec": data.Object{
-								"managedClusterClientConfigs": data.Array{
-									data.Object{
-										"url": "https://my-cluster:6443",
-									},
-								},
-							},
-						}),
-					),
+			       }
 				)
-
-				// Create the handler:
-				handler, err := NewAlarmSubscriptionHandler().
-					SetLogger(logger).
-					SetCloudID("123").
-					SetExtensions(
-						`{
-							"country": .metadata.labels["country"],
-							"region": .metadata.annotations["region"]
-						}`,
-						`{
-							"fixed": 123
-						}`).
-					Build()
-				Expect(err).ToNot(HaveOccurred())
-
-				// Send the request and verify the result:
-				response, err := handler.Get(ctx, &GetRequest{
-					Variables: []string{"123"},
-				})
-				Expect(err).ToNot(HaveOccurred())
-				Expect(response).ToNot(BeNil())
-				Expect(response.Object).To(MatchJQ(`.extensions.country`, "ES"))
-				Expect(response.Object).To(MatchJQ(`.extensions.region`, "Madrid"))
-				Expect(response.Object).To(MatchJQ(`.extensions.fixed`, 123))
-			})
 			*/
 		})
 	})
