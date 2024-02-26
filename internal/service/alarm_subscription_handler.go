@@ -55,25 +55,6 @@ type alarmSubscriptionHandler struct {
 	subscriptionMap          map[string]data.Object
 }
 
-// test go struct for now to populate subscription maps
-type AddRequest struct {
-	// Variables contains the values of the path variables. For example, if the request path is
-	// like this:
-	//
-	//	/o2ims-infrastructureInventory/v1/resourcePools/123/resources/456
-	//
-	// Then it will contain '456' and '123'.
-	//
-	// These path variables are ordered from more specific to less specific, the opposite of
-	// what appears in the request path. This is intended to simplify things because most
-	// handlers will only be interested in the most specific identifier and therefore they
-	// can just use index zero.
-	Variables []string
-
-	// Object is the definition of the object.
-	Object data.Object
-}
-
 // NewAlarmSubscriptionHandler creates a builder that can then be used to configure and create a
 // handler for the collection of deployment managers.
 func NewAlarmSubscriptionHandler() *alarmSubscriptionHandlerBuilder {
