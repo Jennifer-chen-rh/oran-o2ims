@@ -141,7 +141,7 @@ var _ = Describe("alarm Subscription handler", func() {
 		})
 
 		Describe("Get", func() {
-			It("Creat the alart subscription", func() {
+			It("Test Get functions", func() {
 				// Create the handler:
 				handler, err := NewAlarmSubscriptionHandler().
 					SetLogger(logger).
@@ -152,6 +152,7 @@ var _ = Describe("alarm Subscription handler", func() {
 				// Send the request. Note that we ignore the error here because
 				// all we care about in this test is that it sends the token, no
 				// matter what is the response.
+				// Send fake/wrong Id
 				resp, err := handler.Get(ctx, &GetRequest{
 					Variables: []string{"negtive_test"},
 				})
@@ -193,11 +194,59 @@ var _ = Describe("alarm Subscription handler", func() {
 				Expect(resp.Object).To(Equal(obj_1))
 			})
 
-			/*tbd
-			It("Adds configurable extensions", func() {
-			       }
-				)
-			*/
+		})
+
+		Describe("Add + Delete", func() {
+			It("Create the alart subscription and add a subscription", func() {
+				// Create the handler:
+				handler, err := NewAlarmSubscriptionHandler().
+					SetLogger(logger).
+					SetCloudID("123").
+					Build()
+				Expect(err).ToNot(HaveOccurred())
+				obj := data.Object{
+					"customerId": "test_custer_id",
+					"filter": data.Object{
+						"notificationType": "1",
+						"nsInstanceId":     "test_instance_id",
+						"status":           "active",
+					},
+				}
+
+				//add the request
+				add_req := AddRequest{nil, obj}
+				resp, err := handler.Add(ctx, &add_req)
+				Expect(err).ToNot(HaveOccurred())
+
+				//decode the subId
+				sub_id, err := handler.decodeSubId(ctx, resp.Object)
+				Expect(err).ToNot(HaveOccurred())
+
+				//use Get to verify the addrequest
+				get_resp, err := handler.Get(ctx, &GetRequest{
+					Variables: []string{sub_id},
+				})
+				Expect(err).ToNot(HaveOccurred())
+				//extract sub_id and verify
+				sub_id_get, err := handler.decodeSubId(ctx, get_resp.Object)
+				Expect(err).ToNot(HaveOccurred())
+				Expect(sub_id).To(Equal(sub_id_get))
+
+				//use Delete
+				_, err = handler.Delete(ctx, &DeleteRequest{
+					Variables: []string{sub_id}})
+				Expect(err).ToNot(HaveOccurred())
+
+				//use Get to verify the entry was deleted
+				get_resp, err = handler.Get(ctx, &GetRequest{
+					Variables: []string{sub_id},
+				})
+
+				msg := err.Error()
+				Expect(msg).To(Equal("not found"))
+				Expect(get_resp.Object).To(BeEmpty())
+			})
+
 		})
 	})
 })
