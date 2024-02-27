@@ -224,6 +224,49 @@ func (h *alarmSubscriptionHandler) Get(ctx context.Context,
 	return
 }
 
+// Add is the implementation of the object handler ADD interface.
+func (h *alarmSubscriptionHandler) Add(ctx context.Context,
+	request *AddRequest) (response *AddResponse, err error) {
+
+	h.logger.Debug(
+		"alarmSubscriptionHandler Add:",
+	)
+	id, err := h.addItem(ctx, *request)
+
+	if err != nil {
+		return
+	}
+
+	//add subscription Id in the response
+	obj := request.Object
+
+	obj, err = h.encodeSubId(ctx, id, obj)
+
+	if err != nil {
+		return
+	}
+
+	// Return the result:
+	response = &AddResponse{
+		Object: obj,
+	}
+	return
+}
+
+// Delete is the implementation of the object handler delete interface.
+func (h *alarmSubscriptionHandler) Delete(ctx context.Context,
+	request *DeleteRequest) (response *DeleteResponse, err error) {
+
+	h.logger.Debug(
+		"alarmSubscriptionHandler delete:",
+	)
+	err = h.deleteItem(ctx, *request)
+
+	// Return the result:
+	response = &DeleteResponse{}
+
+	return
+}
 func (h *alarmSubscriptionHandler) fetchItem(ctx context.Context,
 	id string) (result data.Object, err error) {
 	h.subscritionMapMemoryLock.Lock()
@@ -296,6 +339,25 @@ func (h *alarmSubscriptionHandler) addItem(
 	h.subscritionMapMemoryLock.Lock()
 	defer h.subscritionMapMemoryLock.Unlock()
 	h.subscriptionMap[subId] = object
+
+	return
+}
+
+func (h *alarmSubscriptionHandler) deleteItem(
+	ctx context.Context, delete_req DeleteRequest) (err error) {
+
+	h.subscritionMapMemoryLock.Lock()
+	defer h.subscritionMapMemoryLock.Unlock()
+
+	//test if the key in the map
+	_, ok := h.subscriptionMap[delete_req.Variables[0]]
+
+	if !ok {
+		err = ErrNotFound
+		return
+	}
+
+	delete(h.subscriptionMap, delete_req.Variables[0])
 
 	return
 }
