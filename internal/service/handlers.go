@@ -155,6 +155,35 @@ type DeleteHandler interface {
 	Delete(ctx context.Context, request *DeleteRequest) (response *DeleteResponse, err error)
 }
 
+// Handlers for DB process.
+type DbChangeNotifyHandler interface {
+	//notification from db to application about db entry changes
+	//currently assume the notification is granular to indivial entry
+	DbChangeNotify(entry_key string, add bool)
+}
+
+type DbReadEntryHandler interface {
+	//notification from db to application about db entry changes
+	//currently assume the notification is granular to indivial entry
+	DbReadEntry(entry_key string) (value any, err error)
+}
+
+type DbAddEntryHandler interface {
+	//add db entry
+	//Currently assume as key value pair
+	DbAddEntry(entry_key string, value any)
+}
+
+type DbDeleteEntryHandler interface {
+	//delete db entry
+	DbDeleteEntry(entry_key string)
+}
+
+type RecoveryFromDbHandler interface {
+	//The handler read to DB and build/recovery datastructures in memory
+	RecoveryFromDb()
+}
+
 // Handler aggregates all the other specific handlers. This is intended for unit/ tests, where it
 // is convenient to have a single mock that implements all the operations.
 type Handler interface {
@@ -162,4 +191,10 @@ type Handler interface {
 	GetHandler
 	AddHandler
 	DeleteHandler
+	//db interfaces
+	DbChangeNotifyHandler
+	DbReadEntryHandler
+	DbAddEntryHandler
+	DbDeleteEntryHandler
+	RecoveryFromDbHandler
 }
