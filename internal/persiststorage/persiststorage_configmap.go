@@ -249,3 +249,45 @@ func (s *KubeConfigMapStore) ProcessChanges(ctx context.Context, dataMap **map[s
 
 	return
 }
+
+func (s *KubeConfigMapStore) ProcessChangesWithFunction(ctx context.Context, function ProcessFunc) (err error) {
+	raw_opt := metav1.SingleObject(metav1.ObjectMeta{
+		Namespace: s.namespace,
+		Name:      s.name,
+	})
+	opt := clnt.ListOptions{}
+	opt.Raw = &raw_opt
+
+	watcher, err := s.client.Watch(ctx, &corev1.ConfigMapList{}, &opt)
+
+	go func() {
+		for {
+			event, open := <-watcher.ResultChan()
+			if open {
+				switch event.Type {
+				case watch.Added, watch.Modified:
+					configmap, _ := event.Object.(*corev1.ConfigMap)
+					newMap := map[string]data.Object{}
+					for k, value := range configmap.Data {
+						var object data.Object
+						err = (*s.jsonAPI).Unmarshal([]byte(value), &object)
+						if err != nil {
+							continue
+						}
+						newMap[k] = object
+					}
+					function(&newMap)
+
+				case watch.Deleted:
+					function(&map[string]data.Object{})
+
+				default:
+
+				}
+
+			}
+		}
+	}()
+
+	return
+}

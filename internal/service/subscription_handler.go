@@ -44,21 +44,21 @@ type SubscriptionHandlerBuilder struct {
 	subscriptionType string
 }
 
-// SubscriptionHandler knows how to respond to requests to list subscriptions.
-// Don't create instances of this type directly, use the NewSubscriptionHandler
-// function instead.
-type SubscriptionHandler struct {
-	logger              *slog.Logger
-	loggingWrapper      func(http.RoundTripper) http.RoundTripper
-	cloudID             string
-	extensions          []string
-	kubeClient          *k8s.Client
-	jsonAPI             jsoniter.API
-	selectorEvaluator   *search.SelectorEvaluator
-	jqTool              *jq.Tool
-	subscriptionMapLock *sync.Mutex
-	subscriptionMap     *map[string]data.Object
-	persistStore        *persiststorage.KubeConfigMapStore
+// alarmSubscriptionHander knows how to respond to requests to list deployment managers.
+// Don't create instances of this type directly, use the NewAlarmSubscriptionHandler function
+// instead.
+type alarmSubscriptionHandler struct {
+	logger                   *slog.Logger
+	loggingWrapper           func(http.RoundTripper) http.RoundTripper
+	cloudID                  string
+	extensions               []string
+	kubeClient               *k8s.Client
+	jsonAPI                  jsoniter.API
+	selectorEvaluator        *search.SelectorEvaluator
+	jqTool                   *jq.Tool
+	subscritionMapMemoryLock *sync.Mutex
+	subscriptionMap          *map[string]data.Object
+	persistStore             *persiststorage.KubeConfigMapStore
 }
 
 // NewSubscriptionHandler creates a builder that can then be used to configure and create a
@@ -198,18 +198,18 @@ func (b *SubscriptionHandlerBuilder) Build(ctx context.Context) (
 		SetClient(b.kubeClient)
 
 	// Create and populate the object:
-	result = &SubscriptionHandler{
-		logger:              b.logger,
-		loggingWrapper:      b.loggingWrapper,
-		cloudID:             b.cloudID,
-		kubeClient:          b.kubeClient,
-		extensions:          slices.Clone(b.extensions),
-		selectorEvaluator:   selectorEvaluator,
-		jsonAPI:             jsonAPI,
-		jqTool:              jqTool,
-		subscriptionMapLock: &sync.Mutex{},
-		subscriptionMap:     &map[string]data.Object{},
-		persistStore:        persistStore,
+	result = &alarmSubscriptionHandler{
+		logger:                   b.logger,
+		loggingWrapper:           b.loggingWrapper,
+		cloudID:                  b.cloudID,
+		kubeClient:               b.kubeClient,
+		extensions:               slices.Clone(b.extensions),
+		selectorEvaluator:        selectorEvaluator,
+		jsonAPI:                  jsonAPI,
+		jqTool:                   jqTool,
+		subscritionMapMemoryLock: &sync.Mutex{},
+		subscriptionMap:          &map[string]data.Object{},
+		persistStore:             persistStore,
 	}
 
 	b.logger.Debug(
@@ -220,14 +220,16 @@ func (b *SubscriptionHandlerBuilder) Build(ctx context.Context) (
 	err = result.getFromPersistentStorage(ctx)
 	if err != nil {
 		b.logger.Error(
-			"SubscriptionHandler failed to recovery from persistStore ", err,
+			"alarmSubscriptionHandler failed to recovery from persistStore ",
+			slog.String("error: ", err.Error()),
 		)
 	}
 
 	err = result.watchPersistStore(ctx)
 	if err != nil {
 		b.logger.Error(
-			"SubscriptionHandler failed to watch persist store changes ", err,
+			"alarmSubscriptionHandler failed to watch persist store changes ",
+			slog.String("error: ", err.Error()),
 		)
 	}
 
