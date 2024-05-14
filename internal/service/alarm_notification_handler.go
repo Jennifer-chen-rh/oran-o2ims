@@ -25,6 +25,8 @@ import (
 	jsoniter "github.com/json-iterator/go"
 	"github.com/openshift-kni/oran-o2ims/internal/data"
 	"github.com/openshift-kni/oran-o2ims/internal/jq"
+	"github.com/openshift-kni/oran-o2ims/internal/k8s"
+	"github.com/openshift-kni/oran-o2ims/internal/persiststorage"
 	"github.com/openshift-kni/oran-o2ims/internal/search"
 )
 
@@ -35,6 +37,8 @@ type alarmNotificationHandlerBuilder struct {
 	logger         *slog.Logger
 	loggingWrapper func(http.RoundTripper) http.RoundTripper
 	cloudID        string
+	extensions     []string
+	kubeClient     *k8s.Client
 }
 
 // key string of uuid
@@ -73,10 +77,10 @@ type filterIndexData struct {
 // Don't create instances of this type directly, use the NewAlarmNotificationHandler function
 // instead.
 type alarmNotificationHandler struct {
-	logger         *slog.Logger
-	loggingWrapper func(http.RoundTripper) http.RoundTripper
-	cloudID        string
-	//extensions               []string
+	logger            *slog.Logger
+	loggingWrapper    func(http.RoundTripper) http.RoundTripper
+	cloudID           string
+	extensions        []string
 	jsonAPI           jsoniter.API
 	selectorEvaluator *search.SelectorEvaluator
 	jqTool            *jq.Tool
@@ -86,6 +90,7 @@ type alarmNotificationHandler struct {
 	subscriptionMap                      map[string]subscriptionInfo
 	subscriptionIdSet                    alarmSubIdSet
 	filterSubscriptionMap                map[string]alarmSubIdSet
+	persistStore                         *persiststorage.KubeConfigMapStore
 }
 
 // NewAlarmNotificationHandler creates a builder that can then be used to configure and create a
@@ -116,6 +121,13 @@ func (b *alarmNotificationHandlerBuilder) SetCloudID(
 	return b
 }
 
+// SetExtensions sets the fields that will be added to the extensions.
+func (b *alarmNotificationHandlerBuilder) SetExtensions(
+	values ...string) *alarmNotificationHandlerBuilder {
+	b.extensions = values
+	return b
+}
+
 // Build uses the data stored in the builder to create anad configure a new handler.
 func (b *alarmNotificationHandlerBuilder) Build() (
 	result *alarmNotificationHandler, err error) {
@@ -126,6 +138,11 @@ func (b *alarmNotificationHandlerBuilder) Build() (
 	}
 	if b.cloudID == "" {
 		err = errors.New("cloud identifier is mandatory")
+		return
+	}
+
+	if b.kubeClient == nil {
+		err = errors.New("kubeClient is mandatory")
 		return
 	}
 

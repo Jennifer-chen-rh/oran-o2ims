@@ -45,6 +45,7 @@ func AlarmNotificationServer() *cobra.Command {
 	authorization.AddFlags(flags)
 
 	network.AddListenerFlags(flags, network.APIListener, network.APIAddress)
+	network.AddListenerFlags(flags, network.MetricsListener, network.MetricsAddress)
 	_ = flags.String(
 		cloudIDFlagName,
 		"",
@@ -168,7 +169,7 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 		SetLogger(logger).
 		SetLoggingWrapper(loggingWrapper).
 		SetCloudID(cloudID).
-		//SetExtensions(extensions...).
+		SetExtensions(extensions...).
 		Build()
 	if err != nil {
 		logger.Error(
