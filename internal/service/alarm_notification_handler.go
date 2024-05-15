@@ -19,7 +19,7 @@ import (
 	"errors"
 	"log/slog"
 	"net/http"
-	"strings"
+	"slices"
 	"sync"
 
 	jsoniter "github.com/json-iterator/go"
@@ -86,11 +86,11 @@ type alarmNotificationHandler struct {
 	jqTool            *jq.Tool
 
 	//structures for notification
-	subscritionNotificationMapMemoryLock *sync.RWMutex
-	subscriptionMap                      map[string]subscriptionInfo
-	subscriptionIdSet                    alarmSubIdSet
-	filterSubscriptionMap                map[string]alarmSubIdSet
-	persistStore                         *persiststorage.KubeConfigMapStore
+	subscriptionMapMemoryLock *sync.RWMutex
+	subscriptionMap           *map[string]data.Object
+	subscriptionIdSet         alarmSubIdSet
+	filterSubscriptionMap     map[string]alarmSubIdSet
+	persistStore              *persiststorage.KubeConfigMapStore
 }
 
 // NewAlarmNotificationHandler creates a builder that can then be used to configure and create a
@@ -128,8 +128,15 @@ func (b *alarmNotificationHandlerBuilder) SetExtensions(
 	return b
 }
 
+// SetExtensions sets the fields that will be added to the extensions.
+func (b *alarmNotificationHandlerBuilder) SetKubeClient(
+	kubeClient *k8s.Client) *alarmSubscriptionHandlerBuilder {
+	b.kubeClient = kubeClient
+	return b
+}
+
 // Build uses the data stored in the builder to create anad configure a new handler.
-func (b *alarmNotificationHandlerBuilder) Build() (
+func (b *alarmNotificationHandlerBuilder) Build(ctx context.Context) (
 	result *alarmNotificationHandler, err error) {
 	// Check parameters:
 	if b.logger == nil {
@@ -176,26 +183,35 @@ func (b *alarmNotificationHandlerBuilder) Build() (
 	}
 
 	// Check that extensions are at least syntactically valid:
-	/*for _, extension := range b.extensions {
+	for _, extension := range b.extensions {
 		_, err = jqTool.Compile(extension)
 		if err != nil {
 			return
 		}
-	}*/
+	}
+
+	// create persist storeage option
+	persistStore := persiststorage.NewKubeConfigMapStore().
+		SetNameSpace(TestNamespace).
+		SetName(TestConfigmapName).
+		SetFieldOwnder(FieldOwner).
+		SetJsonAPI(&jsonAPI).
+		SetClient(b.kubeClient)
 
 	// Create and populate the object:
 	result = &alarmNotificationHandler{
-		logger:         b.logger,
-		loggingWrapper: b.loggingWrapper,
-		cloudID:        b.cloudID,
-		//extensions:               slices.Clone(b.extensions),
-		selectorEvaluator:                    selectorEvaluator,
-		jsonAPI:                              jsonAPI,
-		jqTool:                               jqTool,
-		subscritionNotificationMapMemoryLock: &sync.RWMutex{},
-		subscriptionMap:                      map[string]subscriptionInfo{},
-		subscriptionIdSet:                    alarmSubIdSet{},
-		filterSubscriptionMap:                map[string]alarmSubIdSet{},
+		logger:                    b.logger,
+		loggingWrapper:            b.loggingWrapper,
+		cloudID:                   b.cloudID,
+		extensions:                slices.Clone(b.extensions),
+		selectorEvaluator:         selectorEvaluator,
+		jsonAPI:                   jsonAPI,
+		jqTool:                    jqTool,
+		subscriptionMapMemoryLock: &sync.RWMutex{},
+		subscriptionMap:           &map[string]data.Object{},
+		subscriptionIdSet:         alarmSubIdSet{},
+		filterSubscriptionMap:     map[string]alarmSubIdSet{},
+		persistStore:              persistStore,
 	}
 
 	b.logger.Debug(
@@ -203,6 +219,19 @@ func (b *alarmNotificationHandlerBuilder) Build() (
 		"CloudID", b.cloudID,
 	)
 
+	err = result.recoveryFromPersistStore(ctx)
+	if err != nil {
+		b.logger.Error(
+			"alarmNotificationHandler failed to recovery from persistStore ", err,
+		)
+	}
+
+	err = result.watchPersistStore(ctx)
+	if err != nil {
+		b.logger.Error(
+			"alarmNotificationHandler failed to watch persist store changes ", err,
+		)
+	}
 	return
 }
 
@@ -339,26 +368,25 @@ func (h *alarmNotificationHandler) Add(ctx context.Context,
 	}
 
 	//now look id_set and send http packets to URIs
-	for key, _ := range id_set {
-		subInfo := h.subscriptionMap[key]
+	/*
+		for key, _ := range id_set {
+			subInfo := h.subscriptionMap[key]
 
-		//var subInfoObj data.Object
-		_, err := h.generateObjFromSubInfo(ctx, subInfo)
+			//var subInfoObj data.Object
+			_, err := h.generateObjFromSubInfo(ctx, subInfo)
 
-		if err != nil {
-			h.logger.Debug("alarmNotificationHandler build subinfo error %s", err.Error())
-		}
+			if err != nil {
+				h.logger.Debug("alarmNotificationHandler build subinfo error %s", err.Error())
+			}
 
-		h.logger.Debug("alarmNotificationHandler build post for subscription %s, event %s",
-			subInfo.subscriptionId, eventRecordId)
-		//Following send post request with subscribeInfo +
-		/*
-			http.Post(subInfo.uris, "application/json", subInfoObj+eventObj)
+			h.logger.Debug("alarmNotificationHandler build post for subscription %s, event %s",
+				subInfo.subscriptionId, eventRecordId)
+			//Following send post request with subscribeInfo +
+				http.Post(subInfo.uris, "application/json", subInfoObj+eventObj)
 
-			data.Object  ==> string in json format// json.Mashal
-		*/
+				data.Object  ==> string in json format// json.Mashal
 
-	}
+		}*/
 
 	// Return the result:
 	eventObj := request.Object
@@ -371,8 +399,8 @@ func (h *alarmNotificationHandler) Add(ctx context.Context,
 /* per alarm type and retrieve subscription IDs set */
 func (h *alarmNotificationHandler) getSubscriptionIds(alarmType string) (result alarmSubIdSet) {
 
-	h.subscritionNotificationMapMemoryLock.RLock()
-	defer h.subscritionNotificationMapMemoryLock.Unlock()
+	h.subscriptionMapMemoryLock.RLock()
+	defer h.subscriptionMapMemoryLock.Unlock()
 	result, ok := h.filterSubscriptionMap[alarmType]
 
 	if !ok {
@@ -383,9 +411,10 @@ func (h *alarmNotificationHandler) getSubscriptionIds(alarmType string) (result 
 }
 
 // Interface called by db callback
+/*
 func (h *alarmNotificationHandler) processSubscritionInfoAdd(sub subscriptionInfo) {
-	h.subscritionNotificationMapMemoryLock.Lock()
-	defer h.subscritionNotificationMapMemoryLock.Unlock()
+	h.subscriptionMapMemoryLock.Lock()
+	defer h.subscriptionMapMemoryLock.Unlock()
 
 	h.subscriptionMap[sub.subscriptionId] = sub
 	h.subscriptionIdSet[sub.subscriptionId] = struct{}{}
@@ -463,4 +492,46 @@ func (h *alarmNotificationHandler) RecoveryFromDb() {
 	}
 
 	h.processSubscritionInfoAdd(sub)
+} */
+
+func (h *alarmNotificationHandler) recoveryFromPersistStore(ctx context.Context) (err error) {
+	newMap, err := persiststorage.GetAll(h.persistStore, ctx)
+	if err != nil {
+		return
+	}
+	h.assignSubscriptionMap(newMap)
+	return
+}
+
+func (h *alarmNotificationHandler) watchPersistStore(ctx context.Context) (err error) {
+	err = persiststorage.ProcessChanges(h.persistStore, ctx, &h.subscriptionMap, h.subscritionMapMemoryLock)
+
+	if err != nil {
+		panic("failed to launch watcher")
+	}
+	return
+}
+
+func (h *alarmNotificationHandler) addToNotificationMap(key string, value data.Object) {
+	h.subscriptionMapMemoryLock.Lock()
+	defer h.subscriptionMapMemoryLock.Unlock()
+	(*h.subscriptionMap)[key] = value
+}
+func (h *alarmNotificationHandler) deleteToNotificationMap(key string) {
+	h.subscriptionMapMemoryLock.Lock()
+	defer h.subscriptionMapMemoryLock.Unlock()
+	//test if the key in the map
+	_, ok := (*h.subscriptionMap)[key]
+
+	if !ok {
+		return
+	}
+
+	delete(*h.subscriptionMap, key)
+}
+
+func (h *alarmNotificationHandler) assignSubscriptionMap(newMap map[string]data.Object) {
+	h.subscriptionMapMemoryLock.Lock()
+	defer h.subscriptionMapMemoryLock.Unlock()
+	h.subscriptionMap = &newMap
 }

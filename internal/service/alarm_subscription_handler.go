@@ -54,17 +54,17 @@ type alarmSubscriptionHandlerBuilder struct {
 // Don't create instances of this type directly, use the NewAlarmSubscriptionHandler function
 // instead.
 type alarmSubscriptionHandler struct {
-	logger                   *slog.Logger
-	loggingWrapper           func(http.RoundTripper) http.RoundTripper
-	cloudID                  string
-	extensions               []string
-	kubeClient               *k8s.Client
-	jsonAPI                  jsoniter.API
-	selectorEvaluator        *search.SelectorEvaluator
-	jqTool                   *jq.Tool
-	subscritionMapMemoryLock *sync.Mutex
-	subscriptionMap          *map[string]data.Object
-	persistStore             *persiststorage.KubeConfigMapStore
+	logger                    *slog.Logger
+	loggingWrapper            func(http.RoundTripper) http.RoundTripper
+	cloudID                   string
+	extensions                []string
+	kubeClient                *k8s.Client
+	jsonAPI                   jsoniter.API
+	selectorEvaluator         *search.SelectorEvaluator
+	jqTool                    *jq.Tool
+	subscriptionMapMemoryLock *sync.Mutex
+	subscriptionMap           *map[string]data.Object
+	persistStore              *persiststorage.KubeConfigMapStore
 }
 
 // NewAlarmSubscriptionHandler creates a builder that can then be used to configure and create a
@@ -174,17 +174,17 @@ func (b *alarmSubscriptionHandlerBuilder) Build(ctx context.Context) (
 
 	// Create and populate the object:
 	result = &alarmSubscriptionHandler{
-		logger:                   b.logger,
-		loggingWrapper:           b.loggingWrapper,
-		cloudID:                  b.cloudID,
-		kubeClient:               b.kubeClient,
-		extensions:               slices.Clone(b.extensions),
-		selectorEvaluator:        selectorEvaluator,
-		jsonAPI:                  jsonAPI,
-		jqTool:                   jqTool,
-		subscritionMapMemoryLock: &sync.Mutex{},
-		subscriptionMap:          &map[string]data.Object{},
-		persistStore:             persistStore,
+		logger:                    b.logger,
+		loggingWrapper:            b.loggingWrapper,
+		cloudID:                   b.cloudID,
+		kubeClient:                b.kubeClient,
+		extensions:                slices.Clone(b.extensions),
+		selectorEvaluator:         selectorEvaluator,
+		jsonAPI:                   jsonAPI,
+		jqTool:                    jqTool,
+		subscriptionMapMemoryLock: &sync.Mutex{},
+		subscriptionMap:           &map[string]data.Object{},
+		persistStore:              persistStore,
 	}
 
 	b.logger.Debug(
@@ -311,8 +311,8 @@ func (h *alarmSubscriptionHandler) Delete(ctx context.Context,
 }
 func (h *alarmSubscriptionHandler) fetchItem(ctx context.Context,
 	id string) (result data.Object, err error) {
-	h.subscritionMapMemoryLock.Lock()
-	defer h.subscritionMapMemoryLock.Unlock()
+	h.subscriptionMapMemoryLock.Lock()
+	defer h.subscriptionMapMemoryLock.Unlock()
 	obj, ok := (*h.subscriptionMap)[id]
 	if !ok {
 		err = ErrNotFound
@@ -324,8 +324,8 @@ func (h *alarmSubscriptionHandler) fetchItem(ctx context.Context,
 }
 
 func (h *alarmSubscriptionHandler) fetchItems(ctx context.Context) (result data.Stream, err error) {
-	h.subscritionMapMemoryLock.Lock()
-	defer h.subscritionMapMemoryLock.Unlock()
+	h.subscriptionMapMemoryLock.Lock()
+	defer h.subscriptionMapMemoryLock.Unlock()
 
 	ar := make([]data.Object, 0, len(*h.subscriptionMap))
 
@@ -386,13 +386,13 @@ func (h *alarmSubscriptionHandler) mapItem(ctx context.Context,
 	return input, nil
 }
 func (h *alarmSubscriptionHandler) addToSubscriptionMap(key string, value data.Object) {
-	h.subscritionMapMemoryLock.Lock()
-	defer h.subscritionMapMemoryLock.Unlock()
+	h.subscriptionMapMemoryLock.Lock()
+	defer h.subscriptionMapMemoryLock.Unlock()
 	(*h.subscriptionMap)[key] = value
 }
 func (h *alarmSubscriptionHandler) deleteToSubscriptionMap(key string) {
-	h.subscritionMapMemoryLock.Lock()
-	defer h.subscritionMapMemoryLock.Unlock()
+	h.subscriptionMapMemoryLock.Lock()
+	defer h.subscriptionMapMemoryLock.Unlock()
 	//test if the key in the map
 	_, ok := (*h.subscriptionMap)[key]
 
@@ -404,8 +404,8 @@ func (h *alarmSubscriptionHandler) deleteToSubscriptionMap(key string) {
 }
 
 func (h *alarmSubscriptionHandler) assignSubscriptionMap(newMap map[string]data.Object) {
-	h.subscritionMapMemoryLock.Lock()
-	defer h.subscritionMapMemoryLock.Unlock()
+	h.subscriptionMapMemoryLock.Lock()
+	defer h.subscriptionMapMemoryLock.Unlock()
 	h.subscriptionMap = &newMap
 }
 

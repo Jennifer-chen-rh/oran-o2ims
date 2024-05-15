@@ -15,17 +15,21 @@ License.
 package server
 
 import (
+	"errors"
 	"log/slog"
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/spf13/cobra"
 
 	"github.com/openshift-kni/oran-o2ims/internal"
 	"github.com/openshift-kni/oran-o2ims/internal/authentication"
 	"github.com/openshift-kni/oran-o2ims/internal/authorization"
 	"github.com/openshift-kni/oran-o2ims/internal/exit"
+	"github.com/openshift-kni/oran-o2ims/internal/k8s"
 	"github.com/openshift-kni/oran-o2ims/internal/logging"
+	"github.com/openshift-kni/oran-o2ims/internal/metrics"
 	"github.com/openshift-kni/oran-o2ims/internal/network"
 	"github.com/openshift-kni/oran-o2ims/internal/service"
 )
@@ -81,6 +85,18 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 	// Get the flags:
 	flags := cmd.Flags()
 
+	// Create the exit handler:
+	exitHandler, err := exit.NewHandler().
+		SetLogger(logger).
+		Build()
+	if err != nil {
+		logger.ErrorContext(
+			ctx,
+			"Failed to create exit handler",
+			slog.String("error", err.Error()),
+		)
+		return exit.Error(1)
+	}
 	// Get the cloud identifier:
 	cloudID, err := flags.GetString(cloudIDFlagName)
 	if err != nil {
@@ -154,6 +170,23 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 		)
 		return exit.Error(1)
 	}
+
+	// Create the metrics wrapper:
+	metricsWrapper, err := metrics.NewHandlerWrapper().
+		AddPaths(
+			"/o2ims-infrastructureMonitoring/-/alarmSubscriptions/-",
+		).
+		SetSubsystem("inbound").
+		Build()
+	if err != nil {
+		logger.ErrorContext(
+			ctx,
+			"Failed to create metrics wrapper",
+			slog.String("error", err.Error()),
+		)
+		return exit.Error(1)
+	}
+
 	// Create the router:
 	router := mux.NewRouter()
 	router.NotFoundHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -164,13 +197,28 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 	})
 	router.Use(authenticationWrapper, authorizationWrapper)
 
+	// create k8s client with kube(from env first)
+	//var config *rest.Config
+	kubeClient, err := k8s.NewClient().SetLogger(logger).SetLoggingWrapper(loggingWrapper).Build()
+
+	if err != nil {
+		logger.ErrorContext(
+			ctx,
+			"Failed to create kubeClient",
+			"error", err,
+		)
+		return exit.Error(1)
+	}
+
 	// Create the handler:
 	handler, err := service.NewAlarmNotificationHandler().
 		SetLogger(logger).
 		SetLoggingWrapper(loggingWrapper).
 		SetCloudID(cloudID).
 		SetExtensions(extensions...).
-		Build()
+		SetKubeClient(kubeClient).
+		Build(ctx)
+
 	if err != nil {
 		logger.Error(
 			"Failed to create handler",
@@ -178,10 +226,6 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 		)
 		return exit.Error(1)
 	}
-
-	//read DB to recovery
-	//When real DB is available, we need hanld recovery errors
-	handler.RecoveryFromDb()
 
 	// Create the routes:
 	adapter, err := service.NewAdapter().
@@ -213,22 +257,63 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 		)
 		return exit.Error(1)
 	}
-	logger.Info(
-		"API listening",
+	logger.InfoContext(
+		ctx,
+		"API server listening",
 		slog.String("address", apiListener.Addr().String()),
 	)
-	apiServer := http.Server{
+	apiServer := &http.Server{
 		Addr:    apiListener.Addr().String(),
 		Handler: router,
 	}
-	err = apiServer.Serve(apiListener)
+
+	exitHandler.AddServer(apiServer)
+	go func() {
+		err = apiServer.Serve(apiListener)
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.ErrorContext(
+				ctx,
+				"API server finished with error",
+				slog.String("error", err.Error()),
+			)
+		}
+	}()
+
+	// Start the metrics server:
+	metricsListener, err := network.NewListener().
+		SetLogger(logger).
+		SetFlags(flags, network.MetricsListener).
+		Build()
 	if err != nil {
-		logger.Error(
-			"API server finished with error",
+		logger.ErrorContext(
+			ctx,
+			"Failed to create metrics listener",
 			slog.String("error", err.Error()),
 		)
 		return exit.Error(1)
 	}
+	logger.InfoContext(
+		ctx,
+		"Metrics server listening",
+		slog.String("address", metricsListener.Addr().String()),
+	)
+	metricsHandler := promhttp.Handler()
+	metricsServer := &http.Server{
+		Addr:    metricsListener.Addr().String(),
+		Handler: metricsHandler,
+	}
+	exitHandler.AddServer(metricsServer)
+	go func() {
+		err = metricsServer.Serve(metricsListener)
+		if err != nil && !errors.Is(err, http.ErrServerClosed) {
+			logger.ErrorContext(
+				ctx,
+				"Metrics server finished with error",
+				slog.String("error", err.Error()),
+			)
+		}
+	}()
 
-	return nil
+	// Wait for exit signals:
+	return exitHandler.Wait(ctx)
 }
