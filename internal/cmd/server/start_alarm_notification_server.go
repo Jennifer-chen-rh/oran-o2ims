@@ -174,7 +174,7 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 	// Create the metrics wrapper:
 	metricsWrapper, err := metrics.NewHandlerWrapper().
 		AddPaths(
-			"/o2ims-infrastructureMonitoring/-/alarmSubscriptions/-",
+			"/o2ims-infrastructureMonitoring/-/alarmNotifications/-",
 		).
 		SetSubsystem("inbound").
 		Build()
@@ -195,7 +195,7 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 	router.MethodNotAllowedHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		service.SendError(w, http.StatusMethodNotAllowed, "Method not allowed")
 	})
-	router.Use(authenticationWrapper, authorizationWrapper)
+	router.Use(metricsWrapper, authenticationWrapper, authorizationWrapper)
 
 	// create k8s client with kube(from env first)
 	//var config *rest.Config

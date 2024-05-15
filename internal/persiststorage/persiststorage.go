@@ -18,7 +18,7 @@ type StorageOperations interface {
 	AddEntry(ctx context.Context, key string, value string) (err error)
 	DeleteEntry(ctx context.Context, key string) (err error)
 	ReadAllEntries(ctx context.Context) (result map[string]data.Object, err error)
-	ProcessChanges(ctx context.Context, dataMap **map[string]data.Object, lock *sync.Mutex) (err error)
+	ProcessChanges(ctx context.Context, dataMap **map[string]data.Object, lock *sync.RWMutex) (err error)
 }
 
 func Add(so StorageOperations, ctx context.Context, key string, value string) (err error) {
@@ -33,6 +33,6 @@ func GetAll(so StorageOperations, ctx context.Context) (result map[string]data.O
 func Delete(so StorageOperations, ctx context.Context, key string) (err error) {
 	return so.DeleteEntry(ctx, key)
 }
-func ProcessChanges(so StorageOperations, ctx context.Context, dataMap **map[string]data.Object, lock *sync.Mutex) (err error) {
+func ProcessChanges(so StorageOperations, ctx context.Context, dataMap **map[string]data.Object, lock *sync.RWMutex) (err error) {
 	return so.ProcessChanges(ctx, dataMap, lock)
 }

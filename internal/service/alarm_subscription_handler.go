@@ -62,7 +62,7 @@ type alarmSubscriptionHandler struct {
 	jsonAPI                   jsoniter.API
 	selectorEvaluator         *search.SelectorEvaluator
 	jqTool                    *jq.Tool
-	subscriptionMapMemoryLock *sync.Mutex
+	subscriptionMapMemoryLock *sync.RWMutex
 	subscriptionMap           *map[string]data.Object
 	persistStore              *persiststorage.KubeConfigMapStore
 }
@@ -182,7 +182,7 @@ func (b *alarmSubscriptionHandlerBuilder) Build(ctx context.Context) (
 		selectorEvaluator:         selectorEvaluator,
 		jsonAPI:                   jsonAPI,
 		jqTool:                    jqTool,
-		subscriptionMapMemoryLock: &sync.Mutex{},
+		subscriptionMapMemoryLock: &sync.RWMutex{},
 		subscriptionMap:           &map[string]data.Object{},
 		persistStore:              persistStore,
 	}
@@ -465,7 +465,7 @@ func (h *alarmSubscriptionHandler) recoveryFromPersistStore(ctx context.Context)
 }
 
 func (h *alarmSubscriptionHandler) watchPersistStore(ctx context.Context) (err error) {
-	err = persiststorage.ProcessChanges(h.persistStore, ctx, &h.subscriptionMap, h.subscritionMapMemoryLock)
+	err = persiststorage.ProcessChanges(h.persistStore, ctx, &h.subscriptionMap, h.subscriptionMapMemoryLock)
 
 	if err != nil {
 		panic("failed to launch watcher")

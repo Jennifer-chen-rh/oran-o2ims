@@ -204,7 +204,7 @@ func (s *KubeConfigMapStore) ReadAllEntries(ctx context.Context) (result map[str
 	return
 }
 
-func (s *KubeConfigMapStore) ProcessChanges(ctx context.Context, dataMap **map[string]data.Object, lock *sync.Mutex) (err error) {
+func (s *KubeConfigMapStore) ProcessChanges(ctx context.Context, dataMap **map[string]data.Object, lock *sync.RWMutex) (err error) {
 	raw_opt := metav1.SingleObject(metav1.ObjectMeta{
 		Namespace: s.nameSpace,
 		Name:      s.name,

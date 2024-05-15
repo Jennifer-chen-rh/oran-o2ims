@@ -130,7 +130,7 @@ func (b *alarmNotificationHandlerBuilder) SetExtensions(
 
 // SetExtensions sets the fields that will be added to the extensions.
 func (b *alarmNotificationHandlerBuilder) SetKubeClient(
-	kubeClient *k8s.Client) *alarmSubscriptionHandlerBuilder {
+	kubeClient *k8s.Client) *alarmNotificationHandlerBuilder {
 	b.kubeClient = kubeClient
 	return b
 }
@@ -504,7 +504,7 @@ func (h *alarmNotificationHandler) recoveryFromPersistStore(ctx context.Context)
 }
 
 func (h *alarmNotificationHandler) watchPersistStore(ctx context.Context) (err error) {
-	err = persiststorage.ProcessChanges(h.persistStore, ctx, &h.subscriptionMap, h.subscritionMapMemoryLock)
+	err = persiststorage.ProcessChanges(h.persistStore, ctx, &h.subscriptionMap, h.subscriptionMapMemoryLock)
 
 	if err != nil {
 		panic("failed to launch watcher")
