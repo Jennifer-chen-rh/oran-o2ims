@@ -44,14 +44,6 @@ type alarmNotificationHandlerBuilder struct {
 // key string of uuid
 type alarmSubIdSet map[string]struct{}
 
-type subscriptionInfo struct {
-	subscriptionId string
-	filter         string
-	consumerId     string
-	uris           string
-	extensions     []string
-}
-
 // expand for future filter index
 //type StringSet map[string]struct{}
 
@@ -91,6 +83,8 @@ type alarmNotificationHandler struct {
 	subscriptionIdSet         alarmSubIdSet
 	filterSubscriptionMap     map[string]alarmSubIdSet
 	persistStore              *persiststorage.KubeConfigMapStore
+	//filter index structures still same semaphone
+	subscriptionSearcher *alarmSubscriptionSearcher
 }
 
 // NewAlarmNotificationHandler creates a builder that can then be used to configure and create a
@@ -190,6 +184,9 @@ func (b *alarmNotificationHandlerBuilder) Build(ctx context.Context) (
 		}
 	}
 
+	alarmSubscriptionSearcher := newAlarmSubscriptionSearcher()
+	alarmSubscriptionSearcher.init()
+
 	// create persist storeage option
 	persistStore := persiststorage.NewKubeConfigMapStore().
 		SetNameSpace(TestNamespace).
@@ -212,6 +209,7 @@ func (b *alarmNotificationHandlerBuilder) Build(ctx context.Context) (
 		subscriptionIdSet:         alarmSubIdSet{},
 		filterSubscriptionMap:     map[string]alarmSubIdSet{},
 		persistStore:              persistStore,
+		subscriptionSearcher:      alarmSubscriptionSearcher,
 	}
 
 	b.logger.Debug(
@@ -246,9 +244,6 @@ func (h *alarmNotificationHandler) generateObjFromSubInfo(ctx context.Context,
 		}`,
 		subInfoObj, &subInfoObj,
 		jq.String("$alarmSubId", subInfo.subscriptionId),
-		jq.String("$consumerId", subInfo.consumerId),
-		jq.String("$callback", subInfo.uris),
-		jq.String("$filter", subInfo.filter),
 	)
 
 	return
