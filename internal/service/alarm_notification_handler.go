@@ -486,6 +486,21 @@ func (h *alarmNotificationHandler) RecoveryFromDb() {
 		extensions:     make([]string, 0),
 	}
 
+
+    //alarm example
+	{
+  "alarmEventRecordId": "a267bbd0-57aa-4ea1-b030-a300d420ef19",
+  "resourceTypeID": "c1fe0c43-28e3-4b61-aac5-84bea67551ea",
+  "resourceID": "my-host",
+  "alarmDefinitionID": "4db97698-e612-430a-9520-c00e214c39e1",
+  "probableCauseID": "4a02fdab-e135-4919-b60c-96af08bd088b",
+  "alarmRaisedTime": "2012-04-23T18:25:43.511Z",
+  "perceivedSeverity": "CRITICAL",
+  "extensions": {
+    "country": "US"
+  }
+}
+
 	h.processSubscritionInfoAdd(sub)
 } */
 

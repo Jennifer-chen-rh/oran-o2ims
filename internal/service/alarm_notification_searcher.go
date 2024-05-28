@@ -31,7 +31,7 @@ type subscriptionFilter struct {
 type subscriptionInfo struct {
 	subscriptionId string
 	filters        []subscriptionFilter
-	resources      map[string]struct{}
+	entities       map[string]struct{}
 	//extensions     []string
 }
 
@@ -49,10 +49,10 @@ func (b *alarmSubscriptionSearcher) init() {
 	b.subscriptionSearcherMap = &map[string]subscriptionInfo{}
 }
 
-func getSubFilters(filterStr string) (result []subscriptionFilter, resources map[string]struct{}, err error) {
+func getSubFilters(filterStr string) (result []subscriptionFilter, entities map[string]struct{}, err error) {
 	var filterStrings []string
 	result = []subscriptionFilter{}
-	resources = map[string]struct{}{}
+	entities = map[string]struct{}{}
 
 	//no filter found, return empty array and behavior as "*"
 	if filterStr == "" {
@@ -77,7 +77,7 @@ func getSubFilters(filterStr string) (result []subscriptionFilter, resources map
 			resource:  sub_filters[1],
 			values:    sub_filters[2],
 		})
-		resources[sub_filters[1]] = struct{}{}
+		entities[sub_filters[1]] = struct{}{}
 	}
 
 	return
@@ -91,12 +91,12 @@ func ProcessSubscriptionMapForSearcher(subscriptionMap *map[string]data.Object,
 		//get filter from data object
 		var filter string
 		jqTool.Evaluate(`.filter`, value, &filter)
-		filters, resourceSet, _ := getSubFilters(filter)
+		filters, entities, _ := getSubFilters(filter)
 
 		result[key] = subscriptionInfo{
 			subscriptionId: key,
 			filters:        filters,
-			resources:      resourceSet,
+			entities:       entities,
 		}
 	}
 
