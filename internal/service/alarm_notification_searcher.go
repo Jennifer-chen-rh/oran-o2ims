@@ -15,89 +15,98 @@ License.
 package service
 
 import (
-	"errors"
-	"strings"
+	"log/slog"
 
 	"github.com/openshift-kni/oran-o2ims/internal/data"
 	"github.com/openshift-kni/oran-o2ims/internal/jq"
+	"github.com/openshift-kni/oran-o2ims/internal/search"
 )
-
-type subscriptionFilter struct {
-	operation string
-	resource  string
-	values    string
-}
 
 type subscriptionInfo struct {
 	subscriptionId string
-	filters        []subscriptionFilter
-	entities       map[string]struct{}
+	filters        search.Selector
+	//entities       map[string]struct{}
 	//extensions     []string
 }
 
 // This file contains oran alarm notification serer search for matched subscriptions
 // at 1st step apply linear search
 type alarmSubscriptionSearcher struct {
+	logger *slog.Logger
+	//maps with prebuilt selector
 	subscriptionSearcherMap *map[string]subscriptionInfo
+	pathIndexMap            *map[string]alarmSubIdSet
+	noFilterSubsSet         *alarmSubIdSet
+
+	//Parser used for the subscription filters
+	selectorParser *search.SelectorParser
 }
 
+func (b *alarmSubscriptionSearcher) SetLogger(
+	value *slog.Logger) *alarmSubscriptionSearcher {
+	b.logger = value
+	return b
+}
+
+func NewAlarmSubscriptionSearcher() *alarmSubscriptionSearcher {
+	return &alarmSubscriptionSearcher{}
+}
 func newAlarmSubscriptionSearcher() *alarmSubscriptionSearcher {
 	return &alarmSubscriptionSearcher{}
 }
 
-func (b *alarmSubscriptionSearcher) init() {
+func (b *alarmSubscriptionSearcher) build() {
 	b.subscriptionSearcherMap = &map[string]subscriptionInfo{}
+	b.pathIndexMap = &map[string]alarmSubIdSet{}
+	b.noFilterSubsSet = &alarmSubIdSet{}
+
+	// Create the filter expression parser:
+	selectorParser, err := search.NewSelectorParser().
+		SetLogger(b.logger).
+		Build()
+	if err != nil {
+		b.logger.Error("failed to create filter expression parser: %w", err)
+		return
+	}
+	b.selectorParser = selectorParser
 }
 
-func getSubFilters(filterStr string) (result []subscriptionFilter, entities map[string]struct{}, err error) {
-	var filterStrings []string
-	result = []subscriptionFilter{}
-	entities = map[string]struct{}{}
+func (b *alarmSubscriptionSearcher) getSubFilters(filterStr string, subId string) (err error) {
 
 	//no filter found, return empty array and behavior as "*"
 	if filterStr == "" {
+		(*b.noFilterSubsSet)[subId] = struct{}{}
 		return
 	}
 
-	filterStrings = strings.Split(filterStr, ";")
-	for _, filter := range filterStrings {
-		filter_cp := filter
-		filter = strings.Trim(filter, "(")
-		filter = strings.Trim(filter, ")")
-		var sub_filters []string
-		sub_filters = strings.Split(filter, ",")
+	result, err := b.selectorParser.Parse(filterStr)
 
-		if len(sub_filters) < 3 {
-			e := ("Filter " + filter_cp + "is mal-formatted")
-			err = errors.New(e)
-			continue
+	if err != nil {
+		return
+	}
+
+	//for now use path 0 only
+	//to be fixed with full path for quicker search
+	for _, element := range result.Terms {
+		_, ok := (*b.pathIndexMap)[element.Path[0]]
+
+		if !ok {
+			(*b.pathIndexMap)[element.Path[0]] = alarmSubIdSet{}
 		}
-		result = append(result, subscriptionFilter{
-			operation: sub_filters[0],
-			resource:  sub_filters[1],
-			values:    sub_filters[2],
-		})
-		entities[sub_filters[1]] = struct{}{}
+		(*b.pathIndexMap)[element.Path[0]][subId] = struct{}{}
 	}
 
 	return
 }
 
-func ProcessSubscriptionMapForSearcher(subscriptionMap *map[string]data.Object,
-	jqTool *jq.Tool) (result map[string]subscriptionInfo) {
-	result = map[string]subscriptionInfo{}
+func (b *alarmSubscriptionSearcher) pocessSubscriptionMapForSearcher(subscriptionMap *map[string]data.Object,
+	jqTool *jq.Tool) (err error) {
 
 	for key, value := range *subscriptionMap {
 		//get filter from data object
 		var filter string
 		jqTool.Evaluate(`.filter`, value, &filter)
-		filters, entities, _ := getSubFilters(filter)
-
-		result[key] = subscriptionInfo{
-			subscriptionId: key,
-			filters:        filters,
-			entities:       entities,
-		}
+		err = b.getSubFilters(filter, key)
 	}
 
 	return
