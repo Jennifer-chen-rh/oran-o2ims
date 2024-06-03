@@ -15,6 +15,7 @@ License.
 package service
 
 import (
+	"context"
 	"log/slog"
 
 	"github.com/openshift-kni/oran-o2ims/internal/data"
@@ -25,6 +26,7 @@ import (
 type subscriptionInfo struct {
 	subscriptionId string
 	filters        search.Selector
+	//uris           string
 	//entities       map[string]struct{}
 	//extensions     []string
 }
@@ -48,9 +50,6 @@ func (b *alarmSubscriptionSearcher) SetLogger(
 	return b
 }
 
-func NewAlarmSubscriptionSearcher() *alarmSubscriptionSearcher {
-	return &alarmSubscriptionSearcher{}
-}
 func newAlarmSubscriptionSearcher() *alarmSubscriptionSearcher {
 	return &alarmSubscriptionSearcher{}
 }
@@ -107,24 +106,44 @@ func (b *alarmSubscriptionSearcher) pocessSubscriptionMapForSearcher(subscriptio
 		var filter string
 		jqTool.Evaluate(`.filter`, value, &filter)
 		err = b.getSubFilters(filter, key)
+		if err != nil {
+			b.logger.Debug(
+				"pocessSubscriptionMapForSearcher ",
+				"subscription: ", key,
+				" error: ", err.Error(),
+			)
+		}
 	}
-
 	return
 }
 
-func (h *alarmNotificationHandler) getSubscriptionIdsFromAlarm(alarm data.Object) (result alarmSubIdSet) {
-
-	result = alarmSubIdSet{}
+func (h *alarmNotificationHandler) getSubscriptionIdsFromAlarm(ctx context.Context, alarm data.Object) (result alarmSubIdSet) {
 
 	h.subscriptionMapMemoryLock.RLock()
 	defer h.subscriptionMapMemoryLock.Unlock()
+	result = *h.subscriptionSearcher.noFilterSubsSet
 
-	for key, value := range *h.subscriptionSearcher.subscriptionSearcherMap {
+	for path, subSet := range *h.subscriptionSearcher.pathIndexMap {
 
-		//no filter (*)
-		if value.filters == nil {
-			result[key] = struct{}{}
-			continue
+		var alarmPath string
+		h.jqTool.Evaluate(path, alarm, alarmPath)
+
+		if alarmPath != "" {
+			for subId, _ := range subSet {
+				subInfo := (*h.subscriptionSearcher.subscriptionSearcherMap)[subId]
+				match, err := h.selectorEvaluator.Evaluate(ctx, &subInfo.filters, alarm)
+				if err != nil {
+					h.logger.Debug(
+						"pocessSubscriptionMapForSearcher ",
+						"subscription: ", subInfo.subscriptionId,
+						" error: ", err.Error(),
+					)
+					continue
+				}
+				if match {
+					result[subId] = struct{}{}
+				}
+			}
 		}
 
 	}

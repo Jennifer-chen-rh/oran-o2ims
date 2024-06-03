@@ -80,9 +80,9 @@ type alarmNotificationHandler struct {
 	//structures for notification
 	subscriptionMapMemoryLock *sync.RWMutex
 	subscriptionMap           *map[string]data.Object
-	subscriptionIdSet         alarmSubIdSet
-	filterSubscriptionMap     map[string]alarmSubIdSet
-	persistStore              *persiststorage.KubeConfigMapStore
+	//subscriptionIdSet         alarmSubIdSet
+	//filterSubscriptionMap     map[string]alarmSubIdSet
+	persistStore *persiststorage.KubeConfigMapStore
 	//filter index structures still same semaphone
 	subscriptionSearcher *alarmSubscriptionSearcher
 }
@@ -201,15 +201,14 @@ func (b *alarmNotificationHandlerBuilder) Build(ctx context.Context) (
 		cloudID:                   b.cloudID,
 		extensions:                slices.Clone(b.extensions),
 		selectorEvaluator:         selectorEvaluator,
-		selectorParser:            selectorParser,
 		jsonAPI:                   jsonAPI,
 		jqTool:                    jqTool,
 		subscriptionMapMemoryLock: &sync.RWMutex{},
 		subscriptionMap:           &map[string]data.Object{},
-		subscriptionIdSet:         alarmSubIdSet{},
-		filterSubscriptionMap:     map[string]alarmSubIdSet{},
-		persistStore:              persistStore,
-		subscriptionSearcher:      alarmSubscriptionSearcher,
+		//subscriptionIdSet:         alarmSubIdSet{},
+		//filterSubscriptionMap:     map[string]alarmSubIdSet{},
+		persistStore:         persistStore,
+		subscriptionSearcher: alarmSubscriptionSearcher,
 	}
 
 	b.logger.Debug(
