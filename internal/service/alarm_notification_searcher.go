@@ -24,9 +24,10 @@ import (
 )
 
 type subscriptionInfo struct {
-	subscriptionId string
-	filters        search.Selector
-	//uris           string
+	subscriptionId         string
+	filters                search.Selector
+	uris                   string
+	consumerSubscriptionId string
 	//entities       map[string]struct{}
 	//extensions     []string
 }
@@ -36,9 +37,9 @@ type subscriptionInfo struct {
 type alarmSubscriptionSearcher struct {
 	logger *slog.Logger
 	//maps with prebuilt selector
-	subscriptionSearcherMap *map[string]subscriptionInfo
-	pathIndexMap            *map[string]alarmSubIdSet
-	noFilterSubsSet         *alarmSubIdSet
+	subscriptionInfoMap *map[string]subscriptionInfo
+	pathIndexMap        *map[string]alarmSubIdSet
+	noFilterSubsSet     *alarmSubIdSet
 
 	//Parser used for the subscription filters
 	selectorParser *search.SelectorParser
@@ -55,7 +56,7 @@ func newAlarmSubscriptionSearcher() *alarmSubscriptionSearcher {
 }
 
 func (b *alarmSubscriptionSearcher) build() {
-	b.subscriptionSearcherMap = &map[string]subscriptionInfo{}
+	b.subscriptionInfoMap = &map[string]subscriptionInfo{}
 	b.pathIndexMap = &map[string]alarmSubIdSet{}
 	b.noFilterSubsSet = &alarmSubIdSet{}
 
@@ -130,7 +131,7 @@ func (h *alarmNotificationHandler) getSubscriptionIdsFromAlarm(ctx context.Conte
 
 		if alarmPath != "" {
 			for subId, _ := range subSet {
-				subInfo := (*h.subscriptionSearcher.subscriptionSearcherMap)[subId]
+				subInfo := (*h.subscriptionSearcher.subscriptionInfoMap)[subId]
 				match, err := h.selectorEvaluator.Evaluate(ctx, &subInfo.filters, alarm)
 				if err != nil {
 					h.logger.Debug(
@@ -148,5 +149,12 @@ func (h *alarmNotificationHandler) getSubscriptionIdsFromAlarm(ctx context.Conte
 
 	}
 
+	return
+}
+
+func (h *alarmNotificationHandler) getSubscriptionInfo(ctx context.Context, subId string) (result subscriptionInfo, ok bool) {
+	h.subscriptionMapMemoryLock.RLock()
+	defer h.subscriptionMapMemoryLock.Unlock()
+	result, ok = (*h.subscriptionSearcher.subscriptionInfoMap)[subId]
 	return
 }
