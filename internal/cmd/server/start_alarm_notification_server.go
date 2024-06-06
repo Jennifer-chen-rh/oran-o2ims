@@ -241,7 +241,7 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 		return exit.Error(1)
 	}
 	router.Handle(
-		"/o2ims-infrastructureMonitoring/{version}/alarmNotifications",
+		"/o2ims-notificationdebug/{version}/alarmNotifications",
 		adapter,
 	).Methods(http.MethodPost)
 

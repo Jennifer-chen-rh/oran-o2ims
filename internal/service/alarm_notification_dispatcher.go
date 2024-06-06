@@ -1,10 +1,7 @@
 package service
 
 import (
-	"bytes"
 	"context"
-
-	"github.com/openshift-kni/oran-o2ims/internal/data"
 )
 
 // Add is the implementation of the object handler ADD interface.
@@ -16,50 +13,18 @@ func (h *alarmNotificationHandler) Add(ctx context.Context,
 	h.logger.Debug(
 		"alarmNotificationHandler Add",
 	)
-
-	var eventRecordId string
-	h.jqTool.Evaluate(`.alarmEventRecordId`, request.Object, &eventRecordId)
-
-	subIdSet := h.getSubscriptionIdsFromAlarm(ctx, request.Object)
-
-	//build the packet
-	var packet data.Object
+	value, err := h.jsonAPI.MarshalIndent(&request.Object, "", " ")
 
 	if err != nil {
 		h.logger.Debug("alarmNotificationHandler failed to marshal %s", err.Error())
 		return
 	}
 
-	//now look id_set and send http packets to URIs
-	for key, _ := range subIdSet {
-		subInfo, ok := h.getSubscriptionInfo(ctx, key)
+	requestStr := string(value)
 
-		if !ok {
-			h.logger.Debug("alarmNotificationHandler failed to get subinfo key %s", key)
-			continue
-		}
-
-		//NOTE:
-		// alarmNotificationType needs to be added
-		// objectRef needs to be added
-		packet["consumerSubscriptionId"] = subInfo.consumerSubscriptionId
-		packet["alarmEventRecord"] = request.Object
-
-		go func(pkt data.Object) {
-			content, err := h.jsonAPI.Marshal(packet)
-			if err != nil {
-				h.logger.Debug("alarmNotificationHandler failed to get content of new packet %s", err.Error())
-			}
-			resp, err := h.httpClient.Post(subInfo.uris, "application/json", bytes.NewBuffer(content))
-			if err != nil {
-				h.logger.Debug("alarmNotificationHandler failed to post packet %s", err.Error())
-				return
-			}
-
-			defer resp.Body.Close()
-		}(packet)
-
-	}
+	h.logger.Debug(
+		"Received the packet: %s", requestStr,
+	)
 
 	eventObj := request.Object
 	response = &AddResponse{
