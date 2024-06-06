@@ -42,12 +42,13 @@ type alarmNotificationHandlerBuilder struct {
 	kubeClient     *k8s.Client
 }
 
-// key string of uuid
+// key string is uuid
 type alarmSubIdSet map[string]struct{}
 
 // expand for future filter index
 //type StringSet map[string]struct{}
 
+/*
 var filter_include_strings = [2]string{
 	"eq",
 	"in",
@@ -59,7 +60,6 @@ var filter_exclude_strings = [2]string{
 
 const star = "*"
 
-/*
 type filterIndexData struct {
 	filterIncludeMap map[string]StringSet
 	filterExcludeMap map[string]StringSet
@@ -239,6 +239,7 @@ func (b *alarmNotificationHandlerBuilder) Build(ctx context.Context) (
 	return
 }
 
+/*
 func (h *alarmNotificationHandler) generateObjFromSubInfo(ctx context.Context,
 	subInfo subscriptionInfo) (subInfoObj data.Object, err error) {
 	err = h.jqTool.Evaluate(
@@ -256,7 +257,6 @@ func (h *alarmNotificationHandler) generateObjFromSubInfo(ctx context.Context,
 }
 
 // Interface called by db callback
-/*
 func (h *alarmNotificationHandler) processSubscritionInfoAdd(sub subscriptionInfo) {
 	h.subscriptionMapMemoryLock.Lock()
 	defer h.subscriptionMapMemoryLock.Unlock()
