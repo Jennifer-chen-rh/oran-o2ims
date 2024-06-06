@@ -21,6 +21,7 @@ import (
 	"net/http"
 	"slices"
 	"sync"
+	"time"
 
 	jsoniter "github.com/json-iterator/go"
 	"github.com/openshift-kni/oran-o2ims/internal/data"
@@ -196,8 +197,8 @@ func (b *alarmNotificationHandlerBuilder) Build(ctx context.Context) (
 		SetClient(b.kubeClient)
 
 	// http client to send out notification
-	// use default cfg 1st
-	httpClient := http.Client{}
+	// use 2 sec first
+	httpClient := http.Client{Timeout: 2 * time.Second}
 
 	// Create and populate the object:
 	result = &alarmNotificationHandler{
