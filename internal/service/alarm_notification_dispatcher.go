@@ -24,13 +24,11 @@ func (h *alarmNotificationHandler) Add(ctx context.Context,
 
 	//build the packet
 	var packet data.Object
-	value, err := h.jsonAPI.Marshal(&request.Object)
 
 	if err != nil {
 		h.logger.Debug("alarmNotificationHandler failed to marshal %s", err.Error())
 		return
 	}
-	packetStr := string(value)
 
 	//now look id_set and send http packets to URIs
 	for key, _ := range subIdSet {
@@ -45,7 +43,7 @@ func (h *alarmNotificationHandler) Add(ctx context.Context,
 		// alarmNotificationType needs to be added
 		// objectRef needs to be added
 		packet["consumerSubscriptionId"] = subInfo.consumerSubscriptionId
-		packet["alarmEventRecord"] = packetStr
+		packet["alarmEventRecord"] = request.Object
 
 		go func(pkt data.Object) {
 			content, err := h.jsonAPI.Marshal(packet)
@@ -60,8 +58,6 @@ func (h *alarmNotificationHandler) Add(ctx context.Context,
 
 			defer resp.Body.Close()
 		}(packet)
-
-		//data.Object  ==> string in json format// json.Mashal
 
 	}
 
