@@ -16,14 +16,16 @@ func (h *alarmNotificationHandler) Add(ctx context.Context,
 	value, err := h.jsonAPI.MarshalIndent(&request.Object, "", " ")
 
 	if err != nil {
-		h.logger.Debug("alarmNotificationHandler failed to marshal %s", err.Error())
+		h.logger.Debug(
+			"alarmNotificationHandler failed to marshal ", err.Error(),
+		)
 		return
 	}
 
 	requestStr := string(value)
 
 	h.logger.Debug(
-		"Received the packet: %s", requestStr,
+		"Received the packet: ", requestStr,
 	)
 
 	eventObj := request.Object
