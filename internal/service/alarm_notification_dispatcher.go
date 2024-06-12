@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"log/slog"
 )
 
 // Add is the implementation of the object handler ADD interface.
@@ -17,7 +18,8 @@ func (h *alarmNotificationHandler) Add(ctx context.Context,
 
 	if err != nil {
 		h.logger.Debug(
-			"alarmNotificationHandler failed to marshal ", err.Error(),
+			"alarmNotificationHandler failed to marshal",
+			slog.String(": ", err.Error()),
 		)
 		return
 	}
@@ -25,7 +27,8 @@ func (h *alarmNotificationHandler) Add(ctx context.Context,
 	requestStr := string(value)
 
 	h.logger.Debug(
-		"Received the packet: ", requestStr,
+		"Received the packet: ",
+		slog.String(": ", requestStr),
 	)
 
 	eventObj := request.Object
