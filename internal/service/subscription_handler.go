@@ -245,7 +245,7 @@ func (b *SubscriptionHandlerBuilder) Build(ctx context.Context) (
 	if err != nil {
 		b.logger.Error(
 			"alarmSubscriptionHandler failed to recovery from persistStore ",
-			slog.String("error: ", err.Error()),
+			slog.String("error", err.Error()),
 		)
 	}
 
@@ -253,7 +253,7 @@ func (b *SubscriptionHandlerBuilder) Build(ctx context.Context) (
 	if err != nil {
 		b.logger.Error(
 			"alarmSubscriptionHandler failed to watch persist store changes ",
-			slog.String("error: ", err.Error()),
+			slog.String("error", err.Error()),
 		)
 	}
 
@@ -398,7 +398,6 @@ func (h *SubscriptionHandler) addItem(
 	subId = h.getSubcriptionId()
 
 	//save the subscription in configuration map
-	//value, err := jsoniter.MarshalIndent(&input_data.Object, "", " ")
 	value, err := h.jsonAPI.MarshalIndent(&input_data.Object, "", " ")
 	if err != nil {
 		return
