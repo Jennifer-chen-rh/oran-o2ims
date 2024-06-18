@@ -191,9 +191,15 @@ func (b *SubscriptionHandlerBuilder) Build(ctx context.Context) (
 
 	// Setup persistent storage:
 	persistStore := persiststorage.NewKubeConfigMapStore().
+<<<<<<< HEAD:internal/service/subscription_handler.go
 		SetNameSpace(TestNamespace).
 		SetName(configMapName).
 		SetFieldOwner(FieldOwner).
+=======
+		SetNamespace(TestNamespace).
+		SetName(TestConfigmapName).
+		SetFieldOwnder(FieldOwner).
+>>>>>>> 40ac090 (Fix NameSpace):internal/service/alarm_subscription_handler.go
 		SetJsonAPI(&jsonAPI).
 		SetClient(b.kubeClient)
 
