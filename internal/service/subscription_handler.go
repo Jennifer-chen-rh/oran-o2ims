@@ -32,6 +32,7 @@ import (
 	"github.com/openshift-kni/oran-o2ims/internal/search"
 )
 
+<<<<<<< HEAD:internal/service/subscription_handler.go
 // SubscriptionHandlerBuilder contains the data and logic needed to create a new
 // subscription handler. Don't create instances of this type directly, use the
 // NewSubscriptionHandler function instead.
@@ -42,6 +43,23 @@ type SubscriptionHandlerBuilder struct {
 	extensions       []string
 	kubeClient       *k8s.Client
 	subscriptionType string
+=======
+const (
+	TestNamespace                  = "orantest"
+	AlarmSubscriptionConfigmapName = "oran-o2ims-alarm-subscriptions"
+	FieldOwner                     = "oran-o2ims"
+)
+
+// alarmSubscriptionHandlerBuilder contains the data and logic needed to create a new deployment
+// manager collection handler. Don't create instances of this type directly, use the
+// NewAlarmSubscriptionHandler function instead.
+type alarmSubscriptionHandlerBuilder struct {
+	logger         *slog.Logger
+	loggingWrapper func(http.RoundTripper) http.RoundTripper
+	cloudID        string
+	extensions     []string
+	kubeClient     *k8s.Client
+>>>>>>> 627f84b (update configmap name):internal/service/alarm_subscription_handler.go
 }
 
 // alarmSubscriptionHander knows how to respond to requests to list deployment managers.
@@ -197,7 +215,7 @@ func (b *SubscriptionHandlerBuilder) Build(ctx context.Context) (
 		SetFieldOwner(FieldOwner).
 =======
 		SetNamespace(TestNamespace).
-		SetName(TestConfigmapName).
+		SetName(AlarmSubscriptionConfigmapName).
 		SetFieldOwnder(FieldOwner).
 >>>>>>> 40ac090 (Fix NameSpace):internal/service/alarm_subscription_handler.go
 		SetJsonAPI(&jsonAPI).

@@ -111,7 +111,11 @@ var _ = Describe("Subscription handler", func() {
 				},
 				ObjectMeta: metav1.ObjectMeta{
 					Namespace: TestNamespace,
+<<<<<<< HEAD:internal/service/subscription_handler_test.go
 					Name:      AlarmConfigMapName,
+=======
+					Name:      AlarmSubscriptionConfigmapName,
+>>>>>>> 627f84b (update configmap name):internal/service/alarm_subscription_handler_test.go
 				},
 				Data: nil,
 			}
