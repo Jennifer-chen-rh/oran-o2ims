@@ -32,26 +32,17 @@ import (
 	"github.com/openshift-kni/oran-o2ims/internal/search"
 )
 
-<<<<<<< HEAD:internal/service/subscription_handler.go
 // SubscriptionHandlerBuilder contains the data and logic needed to create a new
 // subscription handler. Don't create instances of this type directly, use the
 // NewSubscriptionHandler function instead.
-type SubscriptionHandlerBuilder struct {
-	logger           *slog.Logger
-	loggingWrapper   func(http.RoundTripper) http.RoundTripper
-	cloudID          string
-	extensions       []string
-	kubeClient       *k8s.Client
-	subscriptionType string
-=======
 const (
 	TestNamespace                  = "orantest"
 	AlarmSubscriptionConfigmapName = "oran-o2ims-alarm-subscriptions"
 	FieldOwner                     = "oran-o2ims"
 )
 
-// alarmSubscriptionHandlerBuilder contains the data and logic needed to create a new deployment
-// manager collection handler. Don't create instances of this type directly, use the
+// AlarmSubscriptionHandlerBuilder contains the data and logic needed to create a new
+// alarm subscription handler. Don't create instance of this type directly, use the
 // NewAlarmSubscriptionHandler function instead.
 type AlarmSubscriptionHandlerBuilder struct {
 	logger         *slog.Logger
@@ -59,10 +50,10 @@ type AlarmSubscriptionHandlerBuilder struct {
 	cloudID        string
 	extensions     []string
 	kubeClient     *k8s.Client
->>>>>>> 627f84b (update configmap name):internal/service/alarm_subscription_handler.go
+	subscriptionType string
 }
 
-// alarmSubscriptionHander knows how to respond to requests to list deployment managers.
+// alarmSubscriptionHander knows how to respond to requests to list alarm subscriptions.
 // Don't create instances of this type directly, use the NewAlarmSubscriptionHandler function
 // instead.
 type alarmSubscriptionHandler struct {
@@ -79,6 +70,7 @@ type alarmSubscriptionHandler struct {
 	persistStore             *persiststorage.KubeConfigMapStore
 }
 
+<<<<<<< HEAD:internal/service/subscription_handler.go
 // NewSubscriptionHandler creates a builder that can then be used to configure and create a
 // handler for the collection of deployment managers.
 <<<<<<< HEAD:internal/service/subscription_handler.go
@@ -95,6 +87,10 @@ func GetSubcriptionId() (subId string) {
 func (b *SubscriptionHandlerBuilder) SetLogger(
 	value *slog.Logger) *SubscriptionHandlerBuilder {
 =======
+=======
+// NewAlarmSubscriptionHandler creates a builder that can then be used to configure and create a
+// handler for the alarm subscription handler.
+>>>>>>> c5d93ea (fix comment copy paste issue):internal/service/alarm_subscription_handler.go
 func NewAlarmSubscriptionHandler() *AlarmSubscriptionHandlerBuilder {
 	return &AlarmSubscriptionHandlerBuilder{}
 }
