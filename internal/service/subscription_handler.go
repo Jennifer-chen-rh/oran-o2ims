@@ -53,7 +53,7 @@ const (
 // alarmSubscriptionHandlerBuilder contains the data and logic needed to create a new deployment
 // manager collection handler. Don't create instances of this type directly, use the
 // NewAlarmSubscriptionHandler function instead.
-type alarmSubscriptionHandlerBuilder struct {
+type AlarmSubscriptionHandlerBuilder struct {
 	logger         *slog.Logger
 	loggingWrapper func(http.RoundTripper) http.RoundTripper
 	cloudID        string
@@ -81,6 +81,7 @@ type alarmSubscriptionHandler struct {
 
 // NewSubscriptionHandler creates a builder that can then be used to configure and create a
 // handler for the collection of deployment managers.
+<<<<<<< HEAD:internal/service/subscription_handler.go
 func NewSubscriptionHandler() *SubscriptionHandlerBuilder {
 	return &SubscriptionHandlerBuilder{}
 }
@@ -93,35 +94,65 @@ func GetSubcriptionId() (subId string) {
 // SetLogger sets the logger that the handler will use to write to the log. This is mandatory.
 func (b *SubscriptionHandlerBuilder) SetLogger(
 	value *slog.Logger) *SubscriptionHandlerBuilder {
+=======
+func NewAlarmSubscriptionHandler() *AlarmSubscriptionHandlerBuilder {
+	return &AlarmSubscriptionHandlerBuilder{}
+}
+
+// SetLogger sets the logger that the handler will use to write to the log. This is mandatory.
+func (b *AlarmSubscriptionHandlerBuilder) SetLogger(
+	value *slog.Logger) *AlarmSubscriptionHandlerBuilder {
+>>>>>>> 9bf8848 (Correct builder name case):internal/service/alarm_subscription_handler.go
 	b.logger = value
 	return b
 }
 
 // SetLoggingWrapper sets the wrapper that will be used to configure logging for the HTTP clients
 // used to connect to other servers, including the backend server. This is optional.
+<<<<<<< HEAD:internal/service/subscription_handler.go
 func (b *SubscriptionHandlerBuilder) SetLoggingWrapper(
 	value func(http.RoundTripper) http.RoundTripper) *SubscriptionHandlerBuilder {
+=======
+func (b *AlarmSubscriptionHandlerBuilder) SetLoggingWrapper(
+	value func(http.RoundTripper) http.RoundTripper) *AlarmSubscriptionHandlerBuilder {
+>>>>>>> 9bf8848 (Correct builder name case):internal/service/alarm_subscription_handler.go
 	b.loggingWrapper = value
 	return b
 }
 
 // SetCloudID sets the identifier of the O-Cloud of this handler. This is mandatory.
+<<<<<<< HEAD:internal/service/subscription_handler.go
 func (b *SubscriptionHandlerBuilder) SetCloudID(
 	value string) *SubscriptionHandlerBuilder {
+=======
+func (b *AlarmSubscriptionHandlerBuilder) SetCloudID(
+	value string) *AlarmSubscriptionHandlerBuilder {
+>>>>>>> 9bf8848 (Correct builder name case):internal/service/alarm_subscription_handler.go
 	b.cloudID = value
 	return b
 }
 
 // SetExtensions sets the fields that will be added to the extensions.
+<<<<<<< HEAD:internal/service/subscription_handler.go
 func (b *SubscriptionHandlerBuilder) SetExtensions(
 	values ...string) *SubscriptionHandlerBuilder {
+=======
+func (b *AlarmSubscriptionHandlerBuilder) SetExtensions(
+	values ...string) *AlarmSubscriptionHandlerBuilder {
+>>>>>>> 9bf8848 (Correct builder name case):internal/service/alarm_subscription_handler.go
 	b.extensions = values
 	return b
 }
 
+<<<<<<< HEAD:internal/service/subscription_handler.go
 // SetKubeClient sets the K8S client.
 func (b *SubscriptionHandlerBuilder) SetKubeClient(
 	kubeClient *k8s.Client) *SubscriptionHandlerBuilder {
+=======
+// SetExtensions sets the fields that will be added to the extensions.
+func (b *AlarmSubscriptionHandlerBuilder) SetKubeClient(
+	kubeClient *k8s.Client) *AlarmSubscriptionHandlerBuilder {
+>>>>>>> 9bf8848 (Correct builder name case):internal/service/alarm_subscription_handler.go
 	b.kubeClient = kubeClient
 	return b
 }
@@ -135,8 +166,13 @@ func (b *SubscriptionHandlerBuilder) SetSubscriptionType(
 }
 
 // Build uses the data stored in the builder to create anad configure a new handler.
+<<<<<<< HEAD:internal/service/subscription_handler.go
 func (b *SubscriptionHandlerBuilder) Build(ctx context.Context) (
 	result *SubscriptionHandler, err error) {
+=======
+func (b *AlarmSubscriptionHandlerBuilder) Build(ctx context.Context) (
+	result *alarmSubscriptionHandler, err error) {
+>>>>>>> 9bf8848 (Correct builder name case):internal/service/alarm_subscription_handler.go
 	// Check parameters:
 	if b.logger == nil {
 		err = errors.New("logger is mandatory")
