@@ -83,6 +83,8 @@
                                 "--log-field=server=alarm-notification",
                                 "--cloud-id=6575154c-72fc-4ed8-9a87-a81885ab38bb",
                                 "--namespace=6575154c-72fc-4ed8-9a87-a81885ab38bb",
+                                "--resource-server-url=${env:RESOURCE_SERVER_URL}",
+                                "--resource-server-token=${env:RESOURCE_SERVER_TOKEN}"
                         ]
                 },
                 {

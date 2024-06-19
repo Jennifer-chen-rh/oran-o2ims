@@ -200,6 +200,35 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 		return exit.Error(1)
 	}
 
+	// Get the resource server details:
+	resourceServerURL, err := flags.GetString(resourceServerURLFlagName)
+	if err != nil {
+		logger.ErrorContext(
+			ctx,
+			"Failed to get resource server URL flag",
+			"flag", resourceServerURLFlagName,
+			"error", err.Error(),
+		)
+		return exit.Error(1)
+	}
+	if resourceServerURL == "" {
+		logger.ErrorContext(
+			ctx,
+			"Resource server URL is empty",
+			"flag", resourceServerURLFlagName,
+		)
+		return exit.Error(1)
+	}
+	resourceServerToken, err := flags.GetString(resourceServerTokenFlagName)
+	if err != nil || resourceServerToken == "" {
+		logger.ErrorContext(
+			ctx,
+			"Resource server URL is empty",
+			"flag", resourceServerTokenFlagName,
+		)
+		return exit.Error(1)
+	}
+
 	// Create the handler:
 	// Get the namespace:
 	o2imsNamespace, err := flags.GetString(namespace)
@@ -229,6 +258,8 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 		SetKubeClient(kubeClient).
 		SetNamespace(o2imsNamespace).
 		SetConfigmapName(subscriptionsConfigmapName).
+		SetResourceServerURL(resourceServerURL).
+		SetResourceServerToken(resourceServerToken).
 		Build(ctx)
 
 	if err != nil {
