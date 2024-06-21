@@ -163,6 +163,7 @@ func (h *alarmNotificationHandler) getSubscriptionIdsFromAlarm(ctx context.Conte
 
 	h.subscriptionMapMemoryLock.RLock()
 	defer h.subscriptionMapMemoryLock.RUnlock()
+	result = alarmSubIdSet{}
 
 	for subId, subInfo := range h.subscriptionSearcher.subscriptionInfoMap {
 
