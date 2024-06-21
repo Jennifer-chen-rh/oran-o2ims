@@ -30,9 +30,6 @@ import (
 	"github.com/openshift-kni/oran-o2ims/internal/search"
 )
 
-// singlton alarm notification handler
-var singleAlarmNotificationHandle *alarmNotificationHandler = nil
-
 // AlarmNotificationManagerHandlerBuilder contains the data and logic needed to construct
 // alarm notification handler. Don't create instances of this type directly, use the
 // NewAlarmNotificationHandler function instead.
@@ -166,13 +163,7 @@ func (b *AlarmNotificationHandlerBuilder) Build(ctx context.Context) (
 	// use 2 sec first
 	httpClient := http.Client{Timeout: 2 * time.Second}
 
-	if singleAlarmNotificationHandle != nil {
-		b.logger.Error(
-			"alarmNotificationHandler build: the singleAlarmNotificationHandle is not nil return",
-		)
-	}
 	// Create and populate the object:
-
 	handler := &alarmNotificationHandler{
 		logger:                    b.logger,
 		loggingWrapper:            b.loggingWrapper,
@@ -210,7 +201,6 @@ func (b *AlarmNotificationHandlerBuilder) Build(ctx context.Context) (
 		return
 	}
 	result = handler
-	singleAlarmNotificationHandle = result
 	return
 }
 
@@ -265,11 +255,9 @@ func (h *alarmNotificationHandler) assignSubscriptionMap(newMap *map[string]data
 
 func (h *alarmNotificationHandler) processStorageChanges(newMap *map[string]data.Object) {
 
-	//err := singleAlarmNotificationHandle.assignSubscriptionMap(newMap)
 	err := h.assignSubscriptionMap(newMap)
 
 	if err != nil {
-		//singleAlarmNotificationHandle.logger.Error(
 		h.logger.Error(
 			"alarmNotificationHandler failed to watch persist store changes ",
 			slog.String("error", err.Error()),
