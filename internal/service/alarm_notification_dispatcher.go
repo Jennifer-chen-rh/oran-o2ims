@@ -19,6 +19,11 @@ func (h *alarmNotificationHandler) Add(ctx context.Context,
 		"alarmNotificationHandler Add",
 	)
 
+	// Following needs to be test alert
+	// Map iterm
+
+	// map/translate alert to alarm
+
 	var eventRecordId string
 	err = h.jqTool.Evaluate(`.alarmEventRecordId`, request.Object, &eventRecordId)
 	if err != nil {

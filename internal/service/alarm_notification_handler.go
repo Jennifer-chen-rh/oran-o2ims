@@ -192,7 +192,7 @@ func (b *AlarmNotificationHandlerBuilder) Build(ctx context.Context) (
 		"CloudID", b.cloudID,
 	)
 
-	err = result.recoveryFromPersistStore(ctx)
+	err = handler.recoveryFromPersistStore(ctx)
 	if err != nil {
 		b.logger.Error(
 			"alarmNotificationHandler failed to recovery from persistStore ",
@@ -201,7 +201,7 @@ func (b *AlarmNotificationHandlerBuilder) Build(ctx context.Context) (
 		return
 	}
 
-	err = result.watchPersistStore(ctx)
+	err = handler.watchPersistStore(ctx)
 	if err != nil {
 		b.logger.Error(
 			"alarmNotificationHandler failed to watch persist store changes ",
