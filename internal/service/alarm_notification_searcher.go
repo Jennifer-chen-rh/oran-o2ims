@@ -16,7 +16,6 @@ package service
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 
 	"github.com/openshift-kni/oran-o2ims/internal/data"
@@ -56,10 +55,8 @@ func (b *alarmSubscriptionSearcherBuilder) SetJqTool(
 type alarmSubscriptionSearcher struct {
 	logger *slog.Logger
 	jqTool *jq.Tool
-	//maps with prebuilt selector
-	subscriptionInfoMap *map[string]subscriptionInfo
-	pathIndexMap        *map[string]alarmSubIdSet
-	noFilterSubsSet     *alarmSubIdSet
+	//map with prebuilt selector
+	subscriptionInfoMap map[string]subscriptionInfo
 
 	//Parser used for the subscription filters
 	selectorParser *search.SelectorParser
@@ -82,9 +79,7 @@ func (b *alarmSubscriptionSearcherBuilder) build() (result *alarmSubscriptionSea
 	result = &alarmSubscriptionSearcher{
 		logger:              b.logger,
 		jqTool:              b.jqTool,
-		subscriptionInfoMap: &map[string]subscriptionInfo{},
-		pathIndexMap:        &map[string]alarmSubIdSet{},
-		noFilterSubsSet:     &alarmSubIdSet{},
+		subscriptionInfoMap: map[string]subscriptionInfo{},
 		selectorParser:      selectorParser,
 	}
 
@@ -94,32 +89,18 @@ func (b *alarmSubscriptionSearcherBuilder) build() (result *alarmSubscriptionSea
 // NOTE the function should be called by a function that is holding the semophone
 func (b *alarmSubscriptionSearcher) getSubFilters(filterStr string, subId string) (err error) {
 
-	//no filter found, return empty array and behavior as "*"
-	if filterStr == "" {
-		(*b.noFilterSubsSet)[subId] = struct{}{}
-		return
-	}
-
 	result, err := b.selectorParser.Parse(filterStr)
 
 	if err != nil {
+		b.logger.Debug(
+			"getSubFilters failed to parse the filter string ", filterStr,
+		)
 		return
 	}
 
-	subInfo := (*b.subscriptionInfoMap)[subId]
+	subInfo := b.subscriptionInfoMap[subId]
 	subInfo.filters = *result
-	(*b.subscriptionInfoMap)[subId] = subInfo
-
-	//for now use path 0 only
-	//to be fixed with full path for quicker search
-	for _, element := range result.Terms {
-		_, ok := (*b.pathIndexMap)[element.Path[0]]
-
-		if !ok {
-			(*b.pathIndexMap)[element.Path[0]] = alarmSubIdSet{}
-		}
-		(*b.pathIndexMap)[element.Path[0]][subId] = struct{}{}
-	}
+	b.subscriptionInfoMap[subId] = subInfo
 
 	return
 }
@@ -130,9 +111,9 @@ func (b *alarmSubscriptionSearcher) pocessSubscriptionMapForSearcher(subscriptio
 
 	for key, value := range *subscriptionMap {
 
-		(*b.subscriptionInfoMap)[key] = subscriptionInfo{}
+		b.subscriptionInfoMap[key] = subscriptionInfo{}
 
-		subInfo := (*b.subscriptionInfoMap)[key]
+		subInfo := b.subscriptionInfoMap[key]
 		//get uris
 		var uris string
 		err = jqTool.Evaluate(`.callback`, value, &uris)
@@ -151,7 +132,7 @@ func (b *alarmSubscriptionSearcher) pocessSubscriptionMapForSearcher(subscriptio
 			subInfo.consumerSubscriptionId = consumerId
 		}
 
-		(*b.subscriptionInfoMap)[key] = subInfo
+		b.subscriptionInfoMap[key] = subInfo
 
 		//get filter from data object
 		var filter string
@@ -175,63 +156,39 @@ func (b *alarmSubscriptionSearcher) pocessSubscriptionMapForSearcher(subscriptio
 	return
 }
 
+// following function is on the path trigger by alerts originated from alert manager
+// and query the subscription data structure to get matched the subscription
+// The read lock is needed here to protect the read access to the data
 func (h *alarmNotificationHandler) getSubscriptionIdsFromAlarm(ctx context.Context, alarm data.Object) (result alarmSubIdSet) {
 
 	h.subscriptionMapMemoryLock.RLock()
 	defer h.subscriptionMapMemoryLock.RUnlock()
-	result = *h.subscriptionSearcher.noFilterSubsSet
 
-	subCheckedSet := alarmSubIdSet{}
+	for subId, subInfo := range h.subscriptionSearcher.subscriptionInfoMap {
 
-	for path, subSet := range *h.subscriptionSearcher.pathIndexMap {
-
-		var alarmPath string
-		path = fmt.Sprintf(`.%s`, path)
-		err := h.jqTool.Evaluate(path, alarm, &alarmPath)
-
-		//when error != nil
-		//the path does not match we do not need to go next step
-		if err == nil {
-			for subId := range subSet {
-
-				_, ok := result[subId]
-				if ok {
-					continue
-				}
-
-				_, ok = subCheckedSet[subId]
-				if ok {
-					continue
-				}
-				subCheckedSet[subId] = struct{}{}
-
-				subInfo := (*h.subscriptionSearcher.subscriptionInfoMap)[subId]
-				match, err := h.selectorEvaluator.Evaluate(ctx, &subInfo.filters, alarm)
-				if err != nil {
-					h.logger.Debug(
-						"pocessSubscriptionMapForSearcher ",
-						"subscription: ", subId,
-						slog.String("error", err.Error()),
-					)
-					continue
-				}
-				if match {
-					h.logger.Debug(
-						"pocessSubscriptionMapForSearcher MATCH ",
-						"subscription: ", subId,
-					)
-					result[subId] = struct{}{}
-				}
-			}
+		match, err := h.selectorEvaluator.Evaluate(ctx, &subInfo.filters, alarm)
+		if err != nil {
+			h.logger.Debug(
+				"pocessSubscriptionMapForSearcher ",
+				"subscription: ", subId,
+				slog.String("error", err.Error()),
+			)
+			continue
+		}
+		if match {
+			h.logger.Debug(
+				"pocessSubscriptionMapForSearcher MATCH ",
+				"subscription: ", subId,
+			)
+			result[subId] = struct{}{}
 		}
 	}
-
 	return
 }
 
 func (h *alarmNotificationHandler) getSubscriptionInfo(ctx context.Context, subId string) (result subscriptionInfo, ok bool) {
 	h.subscriptionMapMemoryLock.RLock()
 	defer h.subscriptionMapMemoryLock.RUnlock()
-	result, ok = (*h.subscriptionSearcher.subscriptionInfoMap)[subId]
+	result, ok = h.subscriptionSearcher.subscriptionInfoMap[subId]
 	return
 }
