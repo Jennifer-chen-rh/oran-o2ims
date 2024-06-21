@@ -36,21 +36,22 @@ import (
 // subscription handler. Don't create instances of this type directly, use the
 // NewSubscriptionHandler function instead.
 const (
-	TestNamespace                  = "orantest"
-	AlarmSubscriptionConfigmapName = "oran-o2ims-alarm-subscriptions"
-	FieldOwner                     = "oran-o2ims"
+	FieldOwner           = "oran-o2ims"
+	DefaultNamespace     = "orantest"
+	DefaultConfigmapName = "oran-o2ims-alarm-subscriptions"
 )
 
 // AlarmSubscriptionHandlerBuilder contains the data and logic needed to create a new
 // alarm subscription handler. Don't create instance of this type directly, use the
 // NewAlarmSubscriptionHandler function instead.
 type AlarmSubscriptionHandlerBuilder struct {
-	logger         *slog.Logger
-	loggingWrapper func(http.RoundTripper) http.RoundTripper
-	cloudID        string
-	extensions     []string
-	kubeClient     *k8s.Client
-	subscriptionType string
+	logger                     *slog.Logger
+	loggingWrapper             func(http.RoundTripper) http.RoundTripper
+	cloudID                    string
+	extensions                 []string
+	kubeClient                 *k8s.Client
+	o2imsNamespace             string
+	subscriptionsConfigmapName string
 }
 
 // alarmSubscriptionHander knows how to respond to requests to list alarm subscriptions.
@@ -153,11 +154,33 @@ func (b *AlarmSubscriptionHandlerBuilder) SetKubeClient(
 	return b
 }
 
+<<<<<<< HEAD:internal/service/subscription_handler.go
 // SetSubscriptionType sets the purpose of the subscription.
 // So far alarm and infrastructure-inventory as supported.
 func (b *SubscriptionHandlerBuilder) SetSubscriptionType(
 	subscriptionType string) *SubscriptionHandlerBuilder {
 	b.subscriptionType = subscriptionType
+=======
+// SetNamespace sets the namespace.
+func (b *AlarmSubscriptionHandlerBuilder) SetNamespace(
+	value string) *AlarmSubscriptionHandlerBuilder {
+	if value == "" {
+		b.o2imsNamespace = DefaultNamespace
+		return b
+	}
+	b.o2imsNamespace = value
+	return b
+}
+
+// SetNamespace sets the namespace.
+func (b *AlarmSubscriptionHandlerBuilder) SetConfigmapName(
+	value string) *AlarmSubscriptionHandlerBuilder {
+	if value == "" {
+		b.subscriptionsConfigmapName = DefaultConfigmapName
+		return b
+	}
+	b.subscriptionsConfigmapName = value
+>>>>>>> a75da51 (make namespace and configuration map configurable):internal/service/alarm_subscription_handler.go
 	return b
 }
 
@@ -242,12 +265,17 @@ func (b *AlarmSubscriptionHandlerBuilder) Build(ctx context.Context) (
 	// Setup persistent storage:
 	persistStore := persiststorage.NewKubeConfigMapStore().
 <<<<<<< HEAD:internal/service/subscription_handler.go
+<<<<<<< HEAD:internal/service/subscription_handler.go
 		SetNameSpace(TestNamespace).
 		SetName(configMapName).
 		SetFieldOwner(FieldOwner).
 =======
 		SetNamespace(TestNamespace).
 		SetName(AlarmSubscriptionConfigmapName).
+=======
+		SetNamespace(b.o2imsNamespace).
+		SetName(b.subscriptionsConfigmapName).
+>>>>>>> a75da51 (make namespace and configuration map configurable):internal/service/alarm_subscription_handler.go
 		SetFieldOwnder(FieldOwner).
 >>>>>>> 40ac090 (Fix NameSpace):internal/service/alarm_subscription_handler.go
 		SetJsonAPI(&jsonAPI).
@@ -273,7 +301,21 @@ func (b *AlarmSubscriptionHandlerBuilder) Build(ctx context.Context) (
 		"CloudID", b.cloudID,
 	)
 
+<<<<<<< HEAD:internal/service/subscription_handler.go
 	err = result.getFromPersistentStorage(ctx)
+=======
+	b.logger.Debug(
+		"alarmSubscriptionHandler build:",
+		"persistStorage namespace", b.o2imsNamespace,
+	)
+
+	b.logger.Debug(
+		"alarmSubscriptionHandler build:",
+		"persistStorage configmap name", b.subscriptionsConfigmapName,
+	)
+
+	err = result.recoveryFromPersistStore(ctx)
+>>>>>>> a75da51 (make namespace and configuration map configurable):internal/service/alarm_subscription_handler.go
 	if err != nil {
 		b.logger.Error(
 			"alarmSubscriptionHandler failed to recovery from persistStore ",

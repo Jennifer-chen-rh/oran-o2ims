@@ -99,7 +99,7 @@ var _ = Describe("Subscription handler", func() {
 			//create fake namespace
 			namespace := &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: TestNamespace,
+					Name: DefaultNamespace,
 				},
 			}
 			err := fakeClient.Create(ctx, namespace, &client.CreateOptions{}, client.FieldOwner(FieldOwner))
@@ -110,12 +110,17 @@ var _ = Describe("Subscription handler", func() {
 					APIVersion: "v1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
+<<<<<<< HEAD:internal/service/subscription_handler_test.go
 					Namespace: TestNamespace,
 <<<<<<< HEAD:internal/service/subscription_handler_test.go
 					Name:      AlarmConfigMapName,
 =======
 					Name:      AlarmSubscriptionConfigmapName,
 >>>>>>> 627f84b (update configmap name):internal/service/alarm_subscription_handler_test.go
+=======
+					Namespace: DefaultNamespace,
+					Name:      DefaultConfigmapName,
+>>>>>>> a75da51 (make namespace and configuration map configurable):internal/service/alarm_subscription_handler_test.go
 				},
 				Data: nil,
 			}

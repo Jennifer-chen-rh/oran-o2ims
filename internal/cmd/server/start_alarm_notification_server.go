@@ -55,11 +55,6 @@ func AlarmNotificationServer() *cobra.Command {
 		"",
 		"O-Cloud identifier.",
 	)
-	_ = flags.StringArray(
-		extensionsFlagName,
-		[]string{},
-		"Extension to add to alarm notifications.",
-	)
 	return result
 }
 
@@ -196,11 +191,34 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 	}
 
 	// Create the handler:
+	// Get the namespace:
+	o2imsNamespace, err := flags.GetString(o2imsNamespace)
+	if err != nil {
+		logger.DebugContext(
+			ctx,
+			"Failed to get o2ims namespace flag",
+			"flag", o2imsNamespace,
+			"error", err.Error(),
+		)
+	}
+	// Get the configmapName:
+	subscriptionsConfigmapName, err := flags.GetString(alarmSubscriptionConfigmapName)
+	if err != nil {
+		logger.DebugContext(
+			ctx,
+			"Failed to get alarm subscription configmap name flag",
+			"flag", subscriptionsConfigmapName,
+			"error", err.Error(),
+		)
+	}
+
 	handler, err := service.NewAlarmNotificationHandler().
 		SetLogger(logger).
 		SetLoggingWrapper(loggingWrapper).
 		SetCloudID(cloudID).
 		SetKubeClient(kubeClient).
+		SetNamespace(o2imsNamespace).
+		SetConfigmapName(subscriptionsConfigmapName).
 		Build(ctx)
 
 	if err != nil {
@@ -227,6 +245,7 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 	}
 	router.Handle(
 		"/o2ims-infrastructureMonitoring/{version}/alarmNotifications",
+		//TODO http generic call back
 		//handler.Add(),
 		adapter,
 	).Methods(http.MethodPost)
