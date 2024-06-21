@@ -34,10 +34,12 @@ import (
 // alarm notification handler. Don't create instances of this type directly, use the
 // NewAlarmNotificationHandler function instead.
 type AlarmNotificationHandlerBuilder struct {
-	logger         *slog.Logger
-	loggingWrapper func(http.RoundTripper) http.RoundTripper
-	cloudID        string
-	kubeClient     *k8s.Client
+	logger                     *slog.Logger
+	loggingWrapper             func(http.RoundTripper) http.RoundTripper
+	cloudID                    string
+	kubeClient                 *k8s.Client
+	o2imsNamespace             string
+	subscriptionsConfigmapName string
 }
 
 // key string is uuid
@@ -98,6 +100,28 @@ func (b *AlarmNotificationHandlerBuilder) SetKubeClient(
 	return b
 }
 
+// SetNamespace sets the namespace.
+func (b *AlarmNotificationHandlerBuilder) SetNamespace(
+	value string) *AlarmNotificationHandlerBuilder {
+	if value == "" {
+		b.o2imsNamespace = DefaultNamespace
+		return b
+	}
+	b.o2imsNamespace = value
+	return b
+}
+
+// SetNamespace sets the namespace.
+func (b *AlarmNotificationHandlerBuilder) SetConfigmapName(
+	value string) *AlarmNotificationHandlerBuilder {
+	if value == "" {
+		b.subscriptionsConfigmapName = DefaultConfigmapName
+		return b
+	}
+	b.o2imsNamespace = value
+	return b
+}
+
 // Build uses the data stored in the builder to create anad configure a new handler.
 func (b *AlarmNotificationHandlerBuilder) Build(ctx context.Context) (
 	result *alarmNotificationHandler, err error) {
@@ -153,8 +177,8 @@ func (b *AlarmNotificationHandlerBuilder) Build(ctx context.Context) (
 
 	// create persist storeage option
 	persistStore := persiststorage.NewKubeConfigMapStore().
-		SetNamespace(TestNamespace).
-		SetName(AlarmSubscriptionConfigmapName).
+		SetNamespace(b.o2imsNamespace).
+		SetName(b.subscriptionsConfigmapName).
 		SetFieldOwnder(FieldOwner).
 		SetJsonAPI(&jsonAPI).
 		SetClient(b.kubeClient)
@@ -181,6 +205,16 @@ func (b *AlarmNotificationHandlerBuilder) Build(ctx context.Context) (
 	b.logger.Debug(
 		"alarmNotificationHandler build:",
 		"CloudID", b.cloudID,
+	)
+
+	b.logger.Debug(
+		"alarmSubscriptionHandler build:",
+		"persistStorage namespace", b.o2imsNamespace,
+	)
+
+	b.logger.Debug(
+		"alarmSubscriptionHandler build:",
+		"persistStorage configmap name", b.subscriptionsConfigmapName,
 	)
 
 	err = handler.recoveryFromPersistStore(ctx)

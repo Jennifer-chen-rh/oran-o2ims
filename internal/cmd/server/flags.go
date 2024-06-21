@@ -133,11 +133,13 @@ func GetTokenFlag(
 
 // Names of command line flags:
 const (
-	backendTypeFlagName      = "backend-type"
-	backendTokenFlagName     = "backend-token"
-	backendTokenFileFlagName = "backend-token-file"
-	backendURLFlagName       = "backend-url"
-	cloudIDFlagName          = "cloud-id"
-	extensionsFlagName       = "extensions"
-	externalAddressFlagName  = "external-address"
+	backendTypeFlagName            = "backend-type"
+	backendTokenFlagName           = "backend-token"
+	backendTokenFileFlagName       = "backend-token-file"
+	backendURLFlagName             = "backend-url"
+	cloudIDFlagName                = "cloud-id"
+	extensionsFlagName             = "extensions"
+	externalAddressFlagName        = "external-address"
+	o2imsNamespace                 = "o2ims-namespace"
+	alarmSubscriptionConfigmapName = "subscriptions-configmap-name"
 )

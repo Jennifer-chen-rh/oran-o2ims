@@ -78,7 +78,7 @@ var _ = Describe("alarm Subscription handler", func() {
 			//create fake namespace
 			namespace := &corev1.Namespace{
 				ObjectMeta: metav1.ObjectMeta{
-					Name: TestNamespace,
+					Name: DefaultNamespace,
 				},
 			}
 			err := fakeClient.Create(ctx, namespace, &client.CreateOptions{}, client.FieldOwner(FieldOwner))
@@ -89,8 +89,8 @@ var _ = Describe("alarm Subscription handler", func() {
 					APIVersion: "v1",
 				},
 				ObjectMeta: metav1.ObjectMeta{
-					Namespace: TestNamespace,
-					Name:      AlarmSubscriptionConfigmapName,
+					Namespace: DefaultNamespace,
+					Name:      DefaultConfigmapName,
 				},
 				Data: nil,
 			}

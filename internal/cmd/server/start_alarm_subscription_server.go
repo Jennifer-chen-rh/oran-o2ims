@@ -220,12 +220,35 @@ func (c *AlarmSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) 
 	}
 
 	// Create the handler:
+	// Get the namespace:
+	o2imsNamespace, err := flags.GetString(o2imsNamespace)
+	if err != nil {
+		logger.DebugContext(
+			ctx,
+			"Failed to get o2ims namespace flag",
+			"flag", o2imsNamespace,
+			"error", err.Error(),
+		)
+	}
+	// Get the configmapName:
+	subscriptionsConfigmapName, err := flags.GetString(alarmSubscriptionConfigmapName)
+	if err != nil {
+		logger.DebugContext(
+			ctx,
+			"Failed to get alarm subscription configmap name flag",
+			"flag", subscriptionsConfigmapName,
+			"error", err.Error(),
+		)
+	}
+
 	handler, err := service.NewAlarmSubscriptionHandler().
 		SetLogger(logger).
 		SetLoggingWrapper(loggingWrapper).
 		SetCloudID(cloudID).
 		SetExtensions(extensions...).
 		SetKubeClient(kubeClient).
+		SetNamespace(o2imsNamespace).
+		SetConfigmapName(subscriptionsConfigmapName).
 		Build(ctx)
 
 	if err != nil {
