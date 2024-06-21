@@ -242,15 +242,15 @@ func (h *alarmNotificationHandler) watchPersistStore(ctx context.Context) (err e
 	return
 }
 
+// Following function is called during daemon start to update alarm subscription as well as
+// alarm subscription got updated. The write lock is need to update subscription kept in memory
 func (h *alarmNotificationHandler) assignSubscriptionMap(newMap *map[string]data.Object) (err error) {
 	h.subscriptionMapMemoryLock.Lock()
 	defer h.subscriptionMapMemoryLock.Unlock()
 	h.subscriptionMap = newMap
 
 	//clear existing search index and build new one for now
-	h.subscriptionSearcher.subscriptionInfoMap = &map[string]subscriptionInfo{}
-	h.subscriptionSearcher.pathIndexMap = &map[string]alarmSubIdSet{}
-	h.subscriptionSearcher.noFilterSubsSet = &alarmSubIdSet{}
+	h.subscriptionSearcher.subscriptionInfoMap = map[string]subscriptionInfo{}
 
 	err = h.subscriptionSearcher.pocessSubscriptionMapForSearcher(h.subscriptionMap, h.jqTool)
 
