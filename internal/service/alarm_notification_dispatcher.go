@@ -2,6 +2,8 @@ package service
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"log/slog"
 )
 
@@ -14,7 +16,8 @@ func (h *alarmNotificationHandler) Add(ctx context.Context,
 	h.logger.Debug(
 		"alarmNotificationHandler Add",
 	)
-	value, err := h.jsonAPI.MarshalIndent(&request.Object, "", " ")
+	value, err := json.MarshalIndent(&request.Object, "", "\t")
+	//value, err := h.jsonAPI.MarshalToString(&request.Object)
 
 	if err != nil {
 		h.logger.Debug(
@@ -25,11 +28,7 @@ func (h *alarmNotificationHandler) Add(ctx context.Context,
 	}
 
 	requestStr := string(value)
-
-	h.logger.Debug(
-		"Received the packet: ",
-		slog.String(": ", requestStr),
-	)
+	fmt.Print(requestStr)
 
 	eventObj := request.Object
 	response = &AddResponse{
