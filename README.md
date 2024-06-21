@@ -354,6 +354,11 @@ $ curl -s http://localhost:8001/o2ims-infrastructureMonitoring/v1/alarmSubscript
 ```
 Above example will get a list of existing alarm subscriptions
 
+```
+$ curl -s -X POST --header "Content-Type: application/json" -d @subscription.json http://localhost:8000/o2ims-infrastructureMonitoring/v1/alarmSubscriptions
+```
+Above example will post an alarm subscription defined in subscription.json file 
+
 Inside _VS Code_ use the _Run and Debug_ option with the `start
 alarm-subscription-server` [configuration](.vscode/launch.json).
 <<<<<<< HEAD
