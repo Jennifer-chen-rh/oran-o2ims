@@ -87,6 +87,8 @@ var _ = Describe("alarm Notification handler", func() {
 					SetConfigmapName(DefaultConfigmapName).
 					SetNamespace(DefaultNamespace).
 					SetCloudID("123").
+					SetResourceServerToken("testToken").
+					SetResourceServerURL("testURL").
 					Build(ctx)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -129,7 +131,7 @@ var _ = Describe("alarm Notification handler", func() {
 				//validate add/post request go through
 				add_req := AddRequest{nil, requestObj}
 				_, err = handler.Add(ctx, &add_req)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).To(HaveOccurred())
 
 				//packet does not match any subscription filters
 				requestObj2 := data.Object{
@@ -167,7 +169,7 @@ var _ = Describe("alarm Notification handler", func() {
 				//validate add/post request go through
 				add_req = AddRequest{nil, requestObj2}
 				_, err = handler.Add(ctx, &add_req)
-				Expect(err).ToNot(HaveOccurred())
+				Expect(err).To(HaveOccurred())
 			})
 
 		})

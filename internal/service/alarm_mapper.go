@@ -41,9 +41,9 @@ type AlarmMapper struct {
 
 // AlarmMapperBuilder contains the data and logic needed to create a new AlarmMapper.
 type AlarmMapperBuilder struct {
-	logger              *slog.Logger
-	backendClient       *http.Client
-	transportWrapper    func(http.RoundTripper) http.RoundTripper
+	logger        *slog.Logger
+	backendClient *http.Client
+	//transportWrapper    func(http.RoundTripper) http.RoundTripper
 	resourceServerURL   string
 	resourceServerToken string
 	extensions          []string
