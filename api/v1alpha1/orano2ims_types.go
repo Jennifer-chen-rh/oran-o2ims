@@ -71,6 +71,12 @@ type AlarmSubscriptionServerConfig struct {
 	ServerConfig `json:",inline"`
 }
 
+// AlarmSubscriptionServerConfig contains the configuration for the alarm subscription server.
+type AlarmNotificationServerConfig struct {
+	//+kubebuilder:default:={enabled:true}
+	ServerConfig `json:",inline"`
+}
+
 // ORANO2IMSSpec defines the desired state of ORANO2IMS
 type ORANO2IMSSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
@@ -90,6 +96,8 @@ type ORANO2IMSSpec struct {
 	ResourceServerConfig          ResourceServerConfig          `json:"resourceServerConfig,omitempty"`
 	//+optional
 	AlarmSubscriptionServerConfig AlarmSubscriptionServerConfig `json:"alarmSubscriptionServerConfig"`
+	//+optional
+	AlarmNotificationServerConfig AlarmNotificationServerConfig `json:"alarmNotificationServerConfig"`
 	//+optional
 	IngressHost string `json:"ingressHost,omitempty"`
 }

@@ -82,8 +82,7 @@
                                 "--log-level=debug",
                                 "--log-field=server=alarm-notification",
                                 "--cloud-id=6575154c-72fc-4ed8-9a87-a81885ab38bb",
-                                "--namespace=orantest",
-                                "--configmap-name=oran-o2ims-alarm-subscriptions"
+                                "--namespace=6575154c-72fc-4ed8-9a87-a81885ab38bb",
                         ]
                 },
                 {
