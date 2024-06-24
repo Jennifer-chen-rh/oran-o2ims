@@ -142,4 +142,6 @@ const (
 	externalAddressFlagName   = "external-address"
 	namespace                 = "namespace"
 	subscriptionConfigmapName = "configmap-name"
+	resourceServerUrl         = "resource-server-url"
+	resourceServerToken       = "resource-server-token"
 )
