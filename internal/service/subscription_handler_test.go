@@ -46,6 +46,8 @@ var _ = Describe("Subscription handler", func() {
 				SetLogger(logger).
 				SetCloudID("123").
 				SetKubeClient(fakeClient).
+				SetConfigmapName(DefaultConfigmapName).
+				SetNamespace(DefaultNamespace).
 				Build(ctx)
 			Expect(err).To(HaveOccurred())
 			Expect(handler).To(BeNil())
@@ -76,7 +78,12 @@ var _ = Describe("Subscription handler", func() {
 			handler, err := NewSubscriptionHandler().
 				SetLogger(logger).
 				SetKubeClient(fakeClient).
+<<<<<<< HEAD:internal/service/subscription_handler_test.go
 				SetSubscriptionType(SubscriptionTypeInfrastructureInventory).
+=======
+				SetConfigmapName(DefaultConfigmapName).
+				SetNamespace(DefaultNamespace).
+>>>>>>> 8e6a7f0 (current changes for configurable namespace + configmap name):internal/service/alarm_subscription_handler_test.go
 				Build(ctx)
 			Expect(err).To(HaveOccurred())
 			Expect(handler).To(BeNil())
@@ -151,7 +158,12 @@ var _ = Describe("Subscription handler", func() {
 					SetLogger(logger).
 					SetCloudID("123").
 					SetKubeClient(fakeClient).
+<<<<<<< HEAD:internal/service/subscription_handler_test.go
 					SetSubscriptionType(SubscriptionTypeAlarm).
+=======
+					SetConfigmapName(DefaultConfigmapName).
+					SetNamespace(DefaultNamespace).
+>>>>>>> 8e6a7f0 (current changes for configurable namespace + configmap name):internal/service/alarm_subscription_handler_test.go
 					Build(ctx)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(handler).ToNot(BeNil())
@@ -171,7 +183,12 @@ var _ = Describe("Subscription handler", func() {
 					SetLogger(logger).
 					SetCloudID("123").
 					SetKubeClient(fakeClient).
+<<<<<<< HEAD:internal/service/subscription_handler_test.go
 					SetSubscriptionType(SubscriptionTypeInfrastructureInventory).
+=======
+					SetConfigmapName(DefaultConfigmapName).
+					SetNamespace(DefaultNamespace).
+>>>>>>> 8e6a7f0 (current changes for configurable namespace + configmap name):internal/service/alarm_subscription_handler_test.go
 					Build(ctx)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(handler).ToNot(BeNil())
@@ -235,7 +252,12 @@ var _ = Describe("Subscription handler", func() {
 					SetLogger(logger).
 					SetCloudID("123").
 					SetKubeClient(fakeClient).
+<<<<<<< HEAD:internal/service/subscription_handler_test.go
 					SetSubscriptionType(SubscriptionTypeInfrastructureInventory).
+=======
+					SetConfigmapName(DefaultConfigmapName).
+					SetNamespace(DefaultNamespace).
+>>>>>>> 8e6a7f0 (current changes for configurable namespace + configmap name):internal/service/alarm_subscription_handler_test.go
 					Build(ctx)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -258,7 +280,12 @@ var _ = Describe("Subscription handler", func() {
 					SetLogger(logger).
 					SetCloudID("123").
 					SetKubeClient(fakeClient).
+<<<<<<< HEAD:internal/service/subscription_handler_test.go
 					SetSubscriptionType(SubscriptionTypeInfrastructureInventory).
+=======
+					SetConfigmapName(DefaultConfigmapName).
+					SetNamespace(DefaultNamespace).
+>>>>>>> 8e6a7f0 (current changes for configurable namespace + configmap name):internal/service/alarm_subscription_handler_test.go
 					Build(ctx)
 				Expect(err).ToNot(HaveOccurred())
 				obj_1 := data.Object{
@@ -296,6 +323,8 @@ var _ = Describe("Subscription handler", func() {
 					SetCloudID("123").
 					SetKubeClient(fakeClient).
 					SetSubscriptionType(SubscriptionTypeInfrastructureInventory).
+					SetConfigmapName(DefaultConfigmapName).
+					SetNamespace(DefaultNamespace).
 					Build(ctx)
 				Expect(err).ToNot(HaveOccurred())
 				obj := data.Object{

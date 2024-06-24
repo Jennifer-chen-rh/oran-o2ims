@@ -220,7 +220,7 @@ func (c *AlarmSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) 
 	}
 
 	// Get the namespace:
-	o2imsNamespace, err := flags.GetString(o2imsNamespace)
+	o2imsNamespace, err := flags.GetString(namespace)
 	if err != nil {
 		logger.DebugContext(
 			ctx,
@@ -230,7 +230,7 @@ func (c *AlarmSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) 
 		)
 	}
 	// Get the configmapName:
-	subscriptionsConfigmapName, err := flags.GetString(alarmSubscriptionConfigmapName)
+	subscriptionsConfigmapName, err := flags.GetString(subscriptionConfigmapName)
 	if err != nil {
 		logger.DebugContext(
 			ctx,
