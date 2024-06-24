@@ -93,7 +93,8 @@ func (b *alarmSubscriptionSearcher) getSubFilters(filterStr string, subId string
 
 	if err != nil {
 		b.logger.Debug(
-			"getSubFilters failed to parse the filter string ", filterStr,
+			"getSubFilters failed to parse the filter string ",
+			slog.String("filter string", filterStr),
 		)
 		return
 	}

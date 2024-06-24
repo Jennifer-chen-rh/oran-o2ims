@@ -44,6 +44,8 @@ var _ = Describe("alarm Subscription handler", func() {
 			handler, err := NewAlarmSubscriptionHandler().
 				SetCloudID("123").
 				SetKubeClient(fakeClient).
+				SetConfigmapName(DefaultConfigmapName).
+				SetNamespace(DefaultNamespace).
 				Build(ctx)
 			Expect(err).To(HaveOccurred())
 			Expect(handler).To(BeNil())
@@ -56,6 +58,8 @@ var _ = Describe("alarm Subscription handler", func() {
 			handler, err := NewAlarmSubscriptionHandler().
 				SetLogger(logger).
 				SetKubeClient(fakeClient).
+				SetConfigmapName(DefaultConfigmapName).
+				SetNamespace(DefaultNamespace).
 				Build(ctx)
 			Expect(err).To(HaveOccurred())
 			Expect(handler).To(BeNil())
@@ -107,6 +111,8 @@ var _ = Describe("alarm Subscription handler", func() {
 					SetLogger(logger).
 					SetCloudID("123").
 					SetKubeClient(fakeClient).
+					SetConfigmapName(DefaultConfigmapName).
+					SetNamespace(DefaultNamespace).
 					Build(ctx)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(handler).ToNot(BeNil())
@@ -126,6 +132,8 @@ var _ = Describe("alarm Subscription handler", func() {
 					SetLogger(logger).
 					SetCloudID("123").
 					SetKubeClient(fakeClient).
+					SetConfigmapName(DefaultConfigmapName).
+					SetNamespace(DefaultNamespace).
 					Build(ctx)
 				Expect(err).ToNot(HaveOccurred())
 				Expect(handler).ToNot(BeNil())
@@ -189,6 +197,8 @@ var _ = Describe("alarm Subscription handler", func() {
 					SetLogger(logger).
 					SetCloudID("123").
 					SetKubeClient(fakeClient).
+					SetConfigmapName(DefaultConfigmapName).
+					SetNamespace(DefaultNamespace).
 					Build(ctx)
 				Expect(err).ToNot(HaveOccurred())
 
@@ -211,6 +221,8 @@ var _ = Describe("alarm Subscription handler", func() {
 					SetLogger(logger).
 					SetCloudID("123").
 					SetKubeClient(fakeClient).
+					SetConfigmapName(DefaultConfigmapName).
+					SetNamespace(DefaultNamespace).
 					Build(ctx)
 				Expect(err).ToNot(HaveOccurred())
 				obj_1 := data.Object{
@@ -247,6 +259,8 @@ var _ = Describe("alarm Subscription handler", func() {
 					SetLogger(logger).
 					SetCloudID("123").
 					SetKubeClient(fakeClient).
+					SetConfigmapName(DefaultConfigmapName).
+					SetNamespace(DefaultNamespace).
 					Build(ctx)
 				Expect(err).ToNot(HaveOccurred())
 				obj := data.Object{
