@@ -55,6 +55,16 @@ func AlarmNotificationServer() *cobra.Command {
 		"",
 		"O-Cloud identifier.",
 	)
+	_ = flags.String(
+		namespace,
+		"",
+		"The namespace the server is running",
+	)
+	_ = flags.String(
+		subscriptionConfigmapName,
+		"",
+		"The configmap name used by alarm subscriptions ",
+	)
 	return result
 }
 
