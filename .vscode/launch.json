@@ -75,6 +75,12 @@
                         "type": "go",
                         "request": "launch",
                         "mode": "auto",
+                        "env": {
+                            "RESOURCE_SERVER_URL": "http://10.1.155.20:8002/o2ims-infrastructureInventory/v1/",
+                            "RESOURCE_SERVER_TOKEN": "yJhbGciOiJSUzI1NiIsImtpZCI6Imk0bU5mdF9Ja3hmelZSOC13TkY0MGZnXzFTTWxuNUptbU9Lb1UxenZSZjQifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjIl0sImV4cCI6MTc0OTYzOTc0NCwiaWF0IjoxNzE4MTAzNzQ0LCJpc3MiOiJodHRwczovL2t1YmVybmV0ZXMuZGVmYXVsdC5zdmMiLCJrdWJlcm5ldGVzLmlvIjp7Im5hbWVzcGFjZSI6Im9wZW5zaGlmdC1vYXV0aC1hcGlzZXJ2ZXIiLCJzZXJ2aWNlYWNjb3VudCI6eyJuYW1lIjoib2F1dGgtYXBpc2VydmVyLXNhIiwidWlkIjoiZGIzZjYyM2UtNTc1NS00Zjk4LWFkNWUtMTFlMDg3OGU2YzBhIn19LCJuYmYiOjE3MTgxMDM3NDQsInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpvcGVuc2hpZnQtb2F1dGgtYXBpc2VydmVyOm9hdXRoLWFwaXNlcnZlci1zYSJ9.WFxtHUcn6mbglQg3aXRJkQGUrRdJpHcEWT3BkjoS38auDW3t6LupspjAfwzVZdoZfUERQQM5tljMFk9G_1edN3AcumT8yXMRHvD3Mv3nlwQWWDFynBq-6L-AqhSFXskYMXh_eegdkWW5DQpcyzbZybnvRp99p5FvdVq_2fZaQorz19OXuY5D57lkRQBVZCXhkozjq7Py0w5D-yoLLArk1rV4JnbJbNDFN-zWVOlMcek77-CvPGbDtVXitRbFKpK-frqOXkWq4wCm3AEJTqf487BIWjT0QzOKyh5GfkJJJ6sfiXugzmOWxXxwQ_DPdBU5Iup6RXcgNmLKKhe8GnRpaptH1Ip3a_-tKfeUZ3P_bn3CUrcveD8SCKqpBBfVgdz2S7AVEb9LIS518nVs-2_ofk5ufgKDbqgrqQgAZ9UGm0orPM-G69ToWHaG8xyx4PHuKURmvXlswF1Db2C-O7HRaM9ZQOzJ3EFBIhUXE76A0P203ky0oqTkIkiC0SN0W6eqpBCXbg24TcdXCewZhHYbarEfKUMVk7CaEfVqL1V8PzAV1SyiUx0sCNWN4BYNxZ_98Xvdn50bNOtCHTFV1_vA2B0Yaat7byxvhayTlVlvTkmicGecT3QBOcpPeZ0uvD2Y4MmaybNcDUGlzelOKV7B2crTtF4vDt7wO6MthkLACoc",
+                            "KUBECONFIG": "~/.kube/kubeconfig",
+                            "KUBERNETES_MASTER": "~/.kube/kubeconfig"
+                        }
                         "program": "${workspaceFolder}",
                         "args": [
                                 "start",

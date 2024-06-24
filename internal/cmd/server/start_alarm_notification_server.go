@@ -65,6 +65,16 @@ func AlarmNotificationServer() *cobra.Command {
 		"",
 		"The configmap name used by alarm subscriptions ",
 	)
+	_ = flags.String(
+		resourceServerUrl,
+		"",
+		"The resource server URL used by alarm subscriptions ",
+	)
+	_ = flags.String(
+		resourceServerToken,
+		"",
+		"The resource server token used by alarm subscriptions ",
+	)
 	return result
 }
 
