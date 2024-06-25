@@ -33,7 +33,15 @@ func (h *alarmNotificationHandler) Add(ctx context.Context,
 		return
 	}
 
-	subIdSet := h.getSubscriptionIdsFromAlarm(ctx, request.Object)
+	debug, err := h.jsonAPI.MarshalIndent(&alarmEventRecord, "", " ")
+	if err == nil {
+		h.logger.Debug(
+			"alarmNotificationHandler alarmEventRecord",
+			slog.String("packet", string(debug)),
+		)
+	}
+
+	subIdSet := h.getSubscriptionIdsFromAlarm(ctx, alarmEventRecord)
 
 	//now look up subscriptions id_set matched and send http packets to URIs
 	for key := range subIdSet {
