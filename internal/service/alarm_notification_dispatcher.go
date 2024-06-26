@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"context"
 	"log/slog"
+	"mime"
+	"net/http"
+	"strings"
 
+	jsoniter "github.com/json-iterator/go"
 	"github.com/openshift-kni/oran-o2ims/internal/data"
 	"github.com/openshift-kni/oran-o2ims/internal/jq"
 )
@@ -12,7 +16,7 @@ import (
 // Add is the implementation of the object handler ADD interface.
 // receive obsability alarm post and trigger the alarms
 
-func (h *alarmNotificationHandler) Add(ctx context.Context,
+func (h *alarmNotificationHandler) add(ctx context.Context,
 	request *AddRequest) (response *AddResponse, err error) {
 
 	h.logger.Debug(
@@ -101,4 +105,99 @@ func (h *alarmNotificationHandler) Add(ctx context.Context,
 
 	response = &AddResponse{}
 	return
+}
+
+func (h *alarmNotificationHandler) ProcessPost(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// Check that the content type is acceptable:
+	contentType := r.Header.Get("Content-Type")
+	if contentType == "" {
+		h.logger.ErrorContext(
+			ctx,
+			"Received empty content type header",
+		)
+		SendError(
+			w, http.StatusBadRequest,
+			"Content type is mandatory, use 'application/json'",
+		)
+		return
+	}
+	mediaType, _, err := mime.ParseMediaType(contentType)
+	if err != nil {
+		h.logger.ErrorContext(
+			ctx,
+			"Failed to parse content type",
+			slog.String("header", contentType),
+			slog.String("error", err.Error()),
+		)
+		SendError(w, http.StatusBadRequest, "Failed to parse content type '%s'", contentType)
+	}
+	if !strings.EqualFold(mediaType, "application/json") {
+		h.logger.ErrorContext(
+			ctx,
+			"Unsupported content type",
+			slog.String("header", contentType),
+			slog.String("media", mediaType),
+		)
+		SendError(
+			w, http.StatusBadRequest,
+			"Content type '%s' isn't supported, use 'application/json'",
+			mediaType,
+		)
+		return
+	}
+	// Parse the request body:
+	decoder := h.jsonAPI.NewDecoder(r.Body)
+	var object data.Object
+	err = decoder.Decode(&object)
+	if err != nil {
+		h.logger.ErrorContext(
+			ctx,
+			"Failed to decode input",
+			slog.String("error", err.Error()),
+		)
+		SendError(w, http.StatusBadRequest, "Failed to decode input")
+		return
+	}
+
+	request := &AddRequest{
+		Object: object,
+	}
+
+	response, err := h.add(ctx, request)
+	if err != nil {
+		h.logger.ErrorContext(
+			ctx,
+			"Failed to add item",
+			"error", err,
+		)
+		SendError(
+			w,
+			http.StatusInternalServerError,
+			"Failed to add item",
+		)
+		return
+	}
+
+	//send response back
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	writer := jsoniter.NewStream(h.jsonAPI, w, 0)
+	writer.WriteVal(response.Object)
+	if writer.Error != nil {
+		h.logger.ErrorContext(
+			ctx,
+			"Failed to send object",
+			"error", writer.Error.Error(),
+		)
+	}
+	writer.Flush()
+	if writer.Error != nil {
+		h.logger.ErrorContext(
+			ctx,
+			"Failed to flush stream",
+			"error", writer.Error.Error(),
+		)
+	}
 }
