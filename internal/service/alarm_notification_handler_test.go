@@ -130,7 +130,7 @@ var _ = Describe("alarm Notification handler", func() {
 
 				//validate add/post request go through
 				add_req := AddRequest{nil, requestObj}
-				_, err = handler.Add(ctx, &add_req)
+				_, err = handler.add(ctx, &add_req)
 				Expect(err).To(HaveOccurred())
 
 				//packet does not match any subscription filters
@@ -168,7 +168,7 @@ var _ = Describe("alarm Notification handler", func() {
 
 				//validate add/post request go through
 				add_req = AddRequest{nil, requestObj2}
-				_, err = handler.Add(ctx, &add_req)
+				_, err = handler.add(ctx, &add_req)
 				Expect(err).To(HaveOccurred())
 			})
 
