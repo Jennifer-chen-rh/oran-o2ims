@@ -226,7 +226,7 @@ func (c *InfrastructureInventorySubscriptionServerCommand) run(cmd *cobra.Comman
 		SetCloudID(cloudID).
 		SetExtensions(extensions...).
 		SetKubeClient(kubeClient).
-		SetSubscriptionType(service.SubscriptionTypeInfrastructureInventory).
+		SetSubscriptionIdString(service.SubscriptionIdInfrastructureInventory).
 		Build(ctx)
 
 	if err != nil {

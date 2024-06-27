@@ -1,13 +1,22 @@
 package service
 
 const (
-	TestNamespace               = "orantest"
-	AlarmConfigMapName          = "oran-alarms-sub"
-	InfraInventoryConfigMapName = "oran-infra-inventory-sub"
-	FieldOwner                  = "oran-o2ims"
+	//default namespace should be changed to official namespace when it is available
+	DefaultNamespace                   = "orantest"
+	DefaultAlarmConfigmapName          = "oran-alarms-sub"
+	DefaultInfraInventoryConfigmapName = "oran-infra-inventory-sub"
+	FieldOwner                         = "oran-o2ims"
 )
 
 const (
-	SubscriptionTypeAlarm                   = "ALARM"
-	SubscriptionTypeInfrastructureInventory = "INFRA-INV"
+	SubscriptionIdAlarm                   = "alarmSubscriptionId"
+	SubscriptionIdInfrastructureInventory = "subscriptionId"
 )
+
+func isSubscriptionAlarm(idString string) bool {
+	return idString == SubscriptionIdAlarm
+}
+
+func isSubscriptionInfrastructureInventory(idString string) bool {
+	return idString == SubscriptionIdInfrastructureInventory
+}

@@ -106,10 +106,6 @@ func (b *AlarmNotificationHandlerBuilder) SetKubeClient(
 // SetNamespace sets the namespace.
 func (b *AlarmNotificationHandlerBuilder) SetNamespace(
 	value string) *AlarmNotificationHandlerBuilder {
-	if value == "" {
-		b.o2imsNamespace = DefaultNamespace
-		return b
-	}
 	b.o2imsNamespace = value
 	return b
 }
@@ -117,11 +113,7 @@ func (b *AlarmNotificationHandlerBuilder) SetNamespace(
 // SetNamespace sets the namespace.
 func (b *AlarmNotificationHandlerBuilder) SetConfigmapName(
 	value string) *AlarmNotificationHandlerBuilder {
-	if value == "" {
-		b.subscriptionsConfigmapName = DefaultConfigmapName
-		return b
-	}
-	b.o2imsNamespace = value
+	b.subscriptionsConfigmapName = value
 	return b
 }
 
