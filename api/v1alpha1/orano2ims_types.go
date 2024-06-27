@@ -89,8 +89,6 @@ type ORANO2IMSSpec struct {
 	//+optional
 	AlarmSubscriptionServerConfig AlarmSubscriptionServerConfig `json:"alarmSubscriptionServerConfig"`
 	//+optional
-	AlarmNotificationServerConfig AlarmNotificationServerConfig `json:"alarmNotificationServerConfig"`
-	//+optional
 	IngressHost string `json:"ingressHost,omitempty"`
 }
 
