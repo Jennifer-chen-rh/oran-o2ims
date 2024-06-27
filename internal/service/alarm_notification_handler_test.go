@@ -41,7 +41,7 @@ var _ = Describe("alarm Notification handler", func() {
 			handler, err := NewAlarmNotificationHandler().
 				SetCloudID("123").
 				SetKubeClient(fakeClient).
-				SetConfigmapName(DefaultConfigmapName).
+				SetConfigmapName(DefaultAlarmConfigmapName).
 				SetNamespace(DefaultNamespace).
 				Build(ctx)
 			Expect(err).To(HaveOccurred())
@@ -55,7 +55,7 @@ var _ = Describe("alarm Notification handler", func() {
 			handler, err := NewAlarmNotificationHandler().
 				SetLogger(logger).
 				SetKubeClient(fakeClient).
-				SetConfigmapName(DefaultConfigmapName).
+				SetConfigmapName(DefaultAlarmConfigmapName).
 				SetNamespace(DefaultNamespace).
 				Build(ctx)
 			Expect(err).To(HaveOccurred())
@@ -84,7 +84,7 @@ var _ = Describe("alarm Notification handler", func() {
 				handler, err := NewAlarmNotificationHandler().
 					SetLogger(logger).
 					SetKubeClient(fakeClient).
-					SetConfigmapName(DefaultConfigmapName).
+					SetConfigmapName(DefaultAlarmConfigmapName).
 					SetNamespace(DefaultNamespace).
 					SetCloudID("123").
 					SetResourceServerToken("testToken").
