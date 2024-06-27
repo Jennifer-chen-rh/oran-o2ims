@@ -250,6 +250,10 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 			"error", err.Error(),
 		)
 	}
+
+	if o2imsNamespace == "" {
+		o2imsNamespace = service.DefaultNamespace
+	}
 	// Get the configmapName:
 	subscriptionsConfigmapName, err := flags.GetString(subscriptionConfigmapName)
 	if err != nil {
@@ -259,6 +263,10 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 			"flag", subscriptionsConfigmapName,
 			"error", err.Error(),
 		)
+	}
+
+	if subscriptionsConfigmapName == "" {
+		subscriptionsConfigmapName = service.DefaultConfigmapName
 	}
 
 	handler, err := service.NewAlarmNotificationHandler().
