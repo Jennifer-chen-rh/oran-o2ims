@@ -60,6 +60,16 @@ func AlarmSubscriptionServer() *cobra.Command {
 		[]string{},
 		"Extension to add to alarm subscriptions.",
 	)
+	_ = flags.String(
+		namespace,
+		"",
+		"The namespace the server is running",
+	)
+	_ = flags.String(
+		subscriptionConfigmapName,
+		"",
+		"The configmap name used by alarm subscriptions ",
+	)
 	return result
 }
 
