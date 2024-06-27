@@ -64,15 +64,7 @@ type ResourceServerConfig struct {
 	//+optional
 	Extensions []string `json:"extensions,omitempty"`
 }
-
-// AlarmSubscriptionServerConfig contains the configuration for the alarm subscription server.
 type AlarmSubscriptionServerConfig struct {
-	//+kubebuilder:default:={enabled:true}
-	ServerConfig `json:",inline"`
-}
-
-// AlarmSubscriptionServerConfig contains the configuration for the alarm subscription server.
-type AlarmNotificationServerConfig struct {
 	//+kubebuilder:default:={enabled:true}
 	ServerConfig `json:",inline"`
 }
