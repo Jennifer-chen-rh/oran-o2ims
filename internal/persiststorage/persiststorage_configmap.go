@@ -15,13 +15,8 @@ import (
 )
 
 type KubeConfigMapStore struct {
-<<<<<<< HEAD
-	Name       string
-	namespace  string
-=======
 	namespace  string
 	name       string
->>>>>>> 40ac090 (Fix NameSpace)
 	fieldOwner string
 	jsonAPI    *jsoniter.API
 	client     *k8s.Client
@@ -38,7 +33,7 @@ func (b *KubeConfigMapStore) SetNamespace(
 }
 func (b *KubeConfigMapStore) SetName(
 	name string) *KubeConfigMapStore {
-	b.Name = name
+	b.name = name
 	return b
 }
 
@@ -60,6 +55,10 @@ func (b *KubeConfigMapStore) SetClient(
 	return b
 }
 
+func (b *KubeConfigMapStore) GetName() (name string) {
+	return b.name
+}
+
 // k8s configmap methods
 func (s *KubeConfigMapStore) AddEntry(ctx context.Context, entryKey string, value string) (err error) {
 	//test to read the configmap
@@ -67,11 +66,7 @@ func (s *KubeConfigMapStore) AddEntry(ctx context.Context, entryKey string, valu
 
 	key := clnt.ObjectKey{
 		Namespace: s.namespace,
-<<<<<<< HEAD
-		Name:      s.Name,
-=======
 		Name:      s.name,
->>>>>>> 40ac090 (Fix NameSpace)
 	}
 	err = (*s.client).Get(ctx, key, configmap)
 
@@ -94,11 +89,7 @@ func (s *KubeConfigMapStore) AddEntry(ctx context.Context, entryKey string, valu
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: s.namespace,
-<<<<<<< HEAD
-			Name:      s.Name,
-=======
 			Name:      s.name,
->>>>>>> 40ac090 (Fix NameSpace)
 		},
 		Data: savedData,
 	}
@@ -114,11 +105,7 @@ func (s *KubeConfigMapStore) DeleteEntry(ctx context.Context, entryKey string) (
 
 	key := clnt.ObjectKey{
 		Namespace: s.namespace,
-<<<<<<< HEAD
-		Name:      s.Name,
-=======
 		Name:      s.name,
->>>>>>> 40ac090 (Fix NameSpace)
 	}
 	err = (*s.client).Get(ctx, key, configmap)
 
@@ -147,11 +134,7 @@ func (s *KubeConfigMapStore) DeleteEntry(ctx context.Context, entryKey string) (
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: s.namespace,
-<<<<<<< HEAD
-			Name:      s.Name,
-=======
 			Name:      s.name,
->>>>>>> 40ac090 (Fix NameSpace)
 		},
 		Data: configmap.Data,
 	}
@@ -167,11 +150,7 @@ func (s *KubeConfigMapStore) ReadEntry(ctx context.Context, entryKey string) (va
 
 	key := clnt.ObjectKey{
 		Namespace: s.namespace,
-<<<<<<< HEAD
-		Name:      s.Name,
-=======
 		Name:      s.name,
->>>>>>> 40ac090 (Fix NameSpace)
 	}
 	err = (*s.client).Get(ctx, key, configmap)
 

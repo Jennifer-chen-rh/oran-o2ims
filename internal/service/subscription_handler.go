@@ -36,7 +36,7 @@ import (
 // subscription handler. Don't create instances of this type directly, use the
 // NewSubscriptionHandler function instead.
 const (
-	FieldOwner           = "oran-o2ims"
+	//	FieldOwner           = "oran-o2ims"
 	DefaultNamespace     = "orantest"
 	DefaultConfigmapName = "oran-o2ims-alarm-subscriptions"
 )
@@ -44,7 +44,7 @@ const (
 // AlarmSubscriptionHandlerBuilder contains the data and logic needed to create a new
 // alarm subscription handler. Don't create instance of this type directly, use the
 // NewAlarmSubscriptionHandler function instead.
-type AlarmSubscriptionHandlerBuilder struct {
+type SubscriptionHandlerBuilder struct {
 	logger                     *slog.Logger
 	loggingWrapper             func(http.RoundTripper) http.RoundTripper
 	cloudID                    string
@@ -52,34 +52,33 @@ type AlarmSubscriptionHandlerBuilder struct {
 	kubeClient                 *k8s.Client
 	o2imsNamespace             string
 	subscriptionsConfigmapName string
+	subscriptionType           string
 }
 
 // alarmSubscriptionHander knows how to respond to requests to list alarm subscriptions.
 // Don't create instances of this type directly, use the NewAlarmSubscriptionHandler function
 // instead.
-type alarmSubscriptionHandler struct {
-	logger                   *slog.Logger
-	loggingWrapper           func(http.RoundTripper) http.RoundTripper
-	cloudID                  string
-	extensions               []string
-	kubeClient               *k8s.Client
-	jsonAPI                  jsoniter.API
-	selectorEvaluator        *search.SelectorEvaluator
-	jqTool                   *jq.Tool
-	subscritionMapMemoryLock *sync.Mutex
-	subscriptionMap          *map[string]data.Object
-	persistStore             *persiststorage.KubeConfigMapStore
+type subscriptionHandler struct {
+	logger              *slog.Logger
+	loggingWrapper      func(http.RoundTripper) http.RoundTripper
+	cloudID             string
+	extensions          []string
+	kubeClient          *k8s.Client
+	jsonAPI             jsoniter.API
+	selectorEvaluator   *search.SelectorEvaluator
+	jqTool              *jq.Tool
+	subscriptionMapLock *sync.Mutex
+	subscriptionMap     *map[string]data.Object
+	persistStore        *persiststorage.KubeConfigMapStore
 }
 
-<<<<<<< HEAD:internal/service/subscription_handler.go
 // NewSubscriptionHandler creates a builder that can then be used to configure and create a
 // handler for the collection of deployment managers.
-<<<<<<< HEAD:internal/service/subscription_handler.go
 func NewSubscriptionHandler() *SubscriptionHandlerBuilder {
 	return &SubscriptionHandlerBuilder{}
 }
 
-func GetSubcriptionId() (subId string) {
+func getSubcriptionId() (subId string) {
 	subId = uuid.New().String()
 	return
 }
@@ -87,83 +86,50 @@ func GetSubcriptionId() (subId string) {
 // SetLogger sets the logger that the handler will use to write to the log. This is mandatory.
 func (b *SubscriptionHandlerBuilder) SetLogger(
 	value *slog.Logger) *SubscriptionHandlerBuilder {
-=======
-=======
-// NewAlarmSubscriptionHandler creates a builder that can then be used to configure and create a
-// handler for the alarm subscription handler.
->>>>>>> c5d93ea (fix comment copy paste issue):internal/service/alarm_subscription_handler.go
-func NewAlarmSubscriptionHandler() *AlarmSubscriptionHandlerBuilder {
-	return &AlarmSubscriptionHandlerBuilder{}
-}
-
-// SetLogger sets the logger that the handler will use to write to the log. This is mandatory.
-func (b *AlarmSubscriptionHandlerBuilder) SetLogger(
-	value *slog.Logger) *AlarmSubscriptionHandlerBuilder {
->>>>>>> 9bf8848 (Correct builder name case):internal/service/alarm_subscription_handler.go
 	b.logger = value
 	return b
 }
 
 // SetLoggingWrapper sets the wrapper that will be used to configure logging for the HTTP clients
 // used to connect to other servers, including the backend server. This is optional.
-<<<<<<< HEAD:internal/service/subscription_handler.go
 func (b *SubscriptionHandlerBuilder) SetLoggingWrapper(
 	value func(http.RoundTripper) http.RoundTripper) *SubscriptionHandlerBuilder {
-=======
-func (b *AlarmSubscriptionHandlerBuilder) SetLoggingWrapper(
-	value func(http.RoundTripper) http.RoundTripper) *AlarmSubscriptionHandlerBuilder {
->>>>>>> 9bf8848 (Correct builder name case):internal/service/alarm_subscription_handler.go
 	b.loggingWrapper = value
 	return b
 }
 
 // SetCloudID sets the identifier of the O-Cloud of this handler. This is mandatory.
-<<<<<<< HEAD:internal/service/subscription_handler.go
 func (b *SubscriptionHandlerBuilder) SetCloudID(
 	value string) *SubscriptionHandlerBuilder {
-=======
-func (b *AlarmSubscriptionHandlerBuilder) SetCloudID(
-	value string) *AlarmSubscriptionHandlerBuilder {
->>>>>>> 9bf8848 (Correct builder name case):internal/service/alarm_subscription_handler.go
 	b.cloudID = value
 	return b
 }
 
 // SetExtensions sets the fields that will be added to the extensions.
-<<<<<<< HEAD:internal/service/subscription_handler.go
 func (b *SubscriptionHandlerBuilder) SetExtensions(
 	values ...string) *SubscriptionHandlerBuilder {
-=======
-func (b *AlarmSubscriptionHandlerBuilder) SetExtensions(
-	values ...string) *AlarmSubscriptionHandlerBuilder {
->>>>>>> 9bf8848 (Correct builder name case):internal/service/alarm_subscription_handler.go
 	b.extensions = values
 	return b
 }
 
-<<<<<<< HEAD:internal/service/subscription_handler.go
 // SetKubeClient sets the K8S client.
 func (b *SubscriptionHandlerBuilder) SetKubeClient(
 	kubeClient *k8s.Client) *SubscriptionHandlerBuilder {
-=======
-// SetExtensions sets the fields that will be added to the extensions.
-func (b *AlarmSubscriptionHandlerBuilder) SetKubeClient(
-	kubeClient *k8s.Client) *AlarmSubscriptionHandlerBuilder {
->>>>>>> 9bf8848 (Correct builder name case):internal/service/alarm_subscription_handler.go
 	b.kubeClient = kubeClient
 	return b
 }
 
-<<<<<<< HEAD:internal/service/subscription_handler.go
 // SetSubscriptionType sets the purpose of the subscription.
 // So far alarm and infrastructure-inventory as supported.
 func (b *SubscriptionHandlerBuilder) SetSubscriptionType(
 	subscriptionType string) *SubscriptionHandlerBuilder {
 	b.subscriptionType = subscriptionType
-=======
+	return b
+}
+
 // SetNamespace sets the namespace.
-func (b *AlarmSubscriptionHandlerBuilder) SetNamespace(
-	value string) *AlarmSubscriptionHandlerBuilder {
+func (b *SubscriptionHandlerBuilder) SetNamespace(
+	value string) *SubscriptionHandlerBuilder {
 	if value == "" {
 		b.o2imsNamespace = DefaultNamespace
 		return b
@@ -173,25 +139,19 @@ func (b *AlarmSubscriptionHandlerBuilder) SetNamespace(
 }
 
 // SetNamespace sets the namespace.
-func (b *AlarmSubscriptionHandlerBuilder) SetConfigmapName(
-	value string) *AlarmSubscriptionHandlerBuilder {
+func (b *SubscriptionHandlerBuilder) SetConfigmapName(
+	value string) *SubscriptionHandlerBuilder {
 	if value == "" {
 		b.subscriptionsConfigmapName = DefaultConfigmapName
 		return b
 	}
 	b.subscriptionsConfigmapName = value
->>>>>>> a75da51 (make namespace and configuration map configurable):internal/service/alarm_subscription_handler.go
 	return b
 }
 
 // Build uses the data stored in the builder to create anad configure a new handler.
-<<<<<<< HEAD:internal/service/subscription_handler.go
 func (b *SubscriptionHandlerBuilder) Build(ctx context.Context) (
-	result *SubscriptionHandler, err error) {
-=======
-func (b *AlarmSubscriptionHandlerBuilder) Build(ctx context.Context) (
-	result *alarmSubscriptionHandler, err error) {
->>>>>>> 9bf8848 (Correct builder name case):internal/service/alarm_subscription_handler.go
+	result *subscriptionHandler, err error) {
 	// Check parameters:
 	if b.logger == nil {
 		err = errors.New("logger is mandatory")
@@ -255,45 +215,27 @@ func (b *AlarmSubscriptionHandlerBuilder) Build(ctx context.Context) (
 		}
 	}
 
-	configMapName := ""
-	if b.subscriptionType == SubscriptionTypeAlarm {
-		configMapName = AlarmConfigMapName
-	} else if b.subscriptionType == SubscriptionTypeInfrastructureInventory {
-		configMapName = InfraInventoryConfigMapName
-	}
-
 	// Setup persistent storage:
 	persistStore := persiststorage.NewKubeConfigMapStore().
-<<<<<<< HEAD:internal/service/subscription_handler.go
-<<<<<<< HEAD:internal/service/subscription_handler.go
-		SetNameSpace(TestNamespace).
-		SetName(configMapName).
-		SetFieldOwner(FieldOwner).
-=======
-		SetNamespace(TestNamespace).
-		SetName(AlarmSubscriptionConfigmapName).
-=======
 		SetNamespace(b.o2imsNamespace).
 		SetName(b.subscriptionsConfigmapName).
->>>>>>> a75da51 (make namespace and configuration map configurable):internal/service/alarm_subscription_handler.go
-		SetFieldOwnder(FieldOwner).
->>>>>>> 40ac090 (Fix NameSpace):internal/service/alarm_subscription_handler.go
+		SetFieldOwner(FieldOwner).
 		SetJsonAPI(&jsonAPI).
 		SetClient(b.kubeClient)
 
 	// Create and populate the object:
-	result = &alarmSubscriptionHandler{
-		logger:                   b.logger,
-		loggingWrapper:           b.loggingWrapper,
-		cloudID:                  b.cloudID,
-		kubeClient:               b.kubeClient,
-		extensions:               slices.Clone(b.extensions),
-		selectorEvaluator:        selectorEvaluator,
-		jsonAPI:                  jsonAPI,
-		jqTool:                   jqTool,
-		subscritionMapMemoryLock: &sync.Mutex{},
-		subscriptionMap:          &map[string]data.Object{},
-		persistStore:             persistStore,
+	result = &subscriptionHandler{
+		logger:              b.logger,
+		loggingWrapper:      b.loggingWrapper,
+		cloudID:             b.cloudID,
+		kubeClient:          b.kubeClient,
+		extensions:          slices.Clone(b.extensions),
+		selectorEvaluator:   selectorEvaluator,
+		jsonAPI:             jsonAPI,
+		jqTool:              jqTool,
+		subscriptionMapLock: &sync.Mutex{},
+		subscriptionMap:     &map[string]data.Object{},
+		persistStore:        persistStore,
 	}
 
 	b.logger.Debug(
@@ -301,9 +243,7 @@ func (b *AlarmSubscriptionHandlerBuilder) Build(ctx context.Context) (
 		"CloudID", b.cloudID,
 	)
 
-<<<<<<< HEAD:internal/service/subscription_handler.go
 	err = result.getFromPersistentStorage(ctx)
-=======
 	b.logger.Debug(
 		"alarmSubscriptionHandler build:",
 		"persistStorage namespace", b.o2imsNamespace,
@@ -314,8 +254,6 @@ func (b *AlarmSubscriptionHandlerBuilder) Build(ctx context.Context) (
 		"persistStorage configmap name", b.subscriptionsConfigmapName,
 	)
 
-	err = result.recoveryFromPersistStore(ctx)
->>>>>>> a75da51 (make namespace and configuration map configurable):internal/service/alarm_subscription_handler.go
 	if err != nil {
 		b.logger.Error(
 			"alarmSubscriptionHandler failed to recovery from persistStore ",
@@ -335,7 +273,7 @@ func (b *AlarmSubscriptionHandlerBuilder) Build(ctx context.Context) (
 }
 
 // List is the implementation of the collection handler interface.
-func (h *SubscriptionHandler) List(ctx context.Context,
+func (h *subscriptionHandler) List(ctx context.Context,
 	request *ListRequest) (response *ListResponse, err error) {
 	// Create the stream that will fetch the items:
 	var items data.Stream
@@ -368,7 +306,7 @@ func (h *SubscriptionHandler) List(ctx context.Context,
 }
 
 // Get is the implementation of the object handler interface.
-func (h *SubscriptionHandler) Get(ctx context.Context,
+func (h *subscriptionHandler) Get(ctx context.Context,
 	request *GetRequest) (response *GetResponse, err error) {
 
 	h.logger.DebugContext(
@@ -385,7 +323,7 @@ func (h *SubscriptionHandler) Get(ctx context.Context,
 }
 
 // Add is the implementation of the object handler ADD interface.
-func (h *SubscriptionHandler) Add(ctx context.Context,
+func (h *subscriptionHandler) Add(ctx context.Context,
 	request *AddRequest) (response *AddResponse, err error) {
 
 	h.logger.DebugContext(
@@ -419,7 +357,7 @@ func (h *SubscriptionHandler) Add(ctx context.Context,
 }
 
 // Delete is the implementation of the object handler delete interface.
-func (h *SubscriptionHandler) Delete(ctx context.Context,
+func (h *subscriptionHandler) Delete(ctx context.Context,
 	request *DeleteRequest) (response *DeleteResponse, err error) {
 
 	h.logger.DebugContext(
@@ -434,7 +372,7 @@ func (h *SubscriptionHandler) Delete(ctx context.Context,
 
 	return
 }
-func (h *SubscriptionHandler) fetchItem(ctx context.Context,
+func (h *subscriptionHandler) fetchItem(ctx context.Context,
 	id string) (result data.Object, err error) {
 	h.subscriptionMapLock.Lock()
 	defer h.subscriptionMapLock.Unlock()
@@ -448,7 +386,7 @@ func (h *SubscriptionHandler) fetchItem(ctx context.Context,
 	return
 }
 
-func (h *SubscriptionHandler) fetchItems(ctx context.Context) (result data.Stream, err error) {
+func (h *subscriptionHandler) fetchItems(ctx context.Context) (result data.Stream, err error) {
 	h.subscriptionMapLock.Lock()
 	defer h.subscriptionMapLock.Unlock()
 
@@ -466,7 +404,7 @@ func (h *SubscriptionHandler) fetchItems(ctx context.Context) (result data.Strea
 	return
 }
 
-func (h *SubscriptionHandler) addItem(
+func (h *subscriptionHandler) addItem(
 	ctx context.Context, input_data AddRequest) (subId string, err error) {
 
 	subId = h.getSubcriptionId()
@@ -490,7 +428,7 @@ func (h *SubscriptionHandler) addItem(
 	return
 }
 
-func (h *SubscriptionHandler) deleteItem(
+func (h *subscriptionHandler) deleteItem(
 	ctx context.Context, delete_req DeleteRequest) (err error) {
 
 	err = persiststorage.Delete(h.persistStore, ctx, delete_req.Variables[0])
@@ -503,18 +441,18 @@ func (h *SubscriptionHandler) deleteItem(
 	return
 }
 
-func (h *SubscriptionHandler) mapItem(ctx context.Context,
+func (h *subscriptionHandler) mapItem(ctx context.Context,
 	input data.Object) (output data.Object, err error) {
 
 	//TBD only save related attributes in the future
 	return input, nil
 }
-func (h *SubscriptionHandler) addToSubscriptionMap(key string, value data.Object) {
+func (h *subscriptionHandler) addToSubscriptionMap(key string, value data.Object) {
 	h.subscriptionMapLock.Lock()
 	defer h.subscriptionMapLock.Unlock()
 	(*h.subscriptionMap)[key] = value
 }
-func (h *SubscriptionHandler) deleteToSubscriptionMap(key string) {
+func (h *subscriptionHandler) deleteToSubscriptionMap(key string) {
 	h.subscriptionMapLock.Lock()
 	defer h.subscriptionMapLock.Unlock()
 	//test if the key in the map
@@ -527,21 +465,21 @@ func (h *SubscriptionHandler) deleteToSubscriptionMap(key string) {
 	delete(*h.subscriptionMap, key)
 }
 
-func (h *SubscriptionHandler) assignSubscriptionMap(newMap map[string]data.Object) {
+func (h *subscriptionHandler) assignSubscriptionMap(newMap map[string]data.Object) {
 	h.subscriptionMapLock.Lock()
 	defer h.subscriptionMapLock.Unlock()
 	h.subscriptionMap = &newMap
 }
 
-func (h *SubscriptionHandler) getSubcriptionId() (subId string) {
+func (h *subscriptionHandler) getSubcriptionId() (subId string) {
 	subId = uuid.New().String()
 	return
 }
 
-func (h *SubscriptionHandler) encodeSubId(
+func (h *subscriptionHandler) encodeSubId(
 	subId string, input data.Object) (output data.Object, err error) {
 
-	switch h.persistStore.Name {
+	switch h.persistStore.GetName() {
 	case AlarmConfigMapName:
 		// Get consumer name, subscriptions.
 		err = h.jqTool.Evaluate(
@@ -573,11 +511,11 @@ func (h *SubscriptionHandler) encodeSubId(
 	return
 }
 
-func (h *SubscriptionHandler) decodeSubId(
+func (h *subscriptionHandler) decodeSubId(
 	input data.Object) (output string, err error) {
 
 	// get cluster name, subscriptions
-	switch h.persistStore.Name {
+	switch h.persistStore.GetName() {
 	case AlarmConfigMapName:
 		err = h.jqTool.Evaluate(
 			`.alarmSubscriptionId`, input, &output)
@@ -591,7 +529,7 @@ func (h *SubscriptionHandler) decodeSubId(
 	return
 }
 
-func (h *SubscriptionHandler) getFromPersistentStorage(ctx context.Context) (err error) {
+func (h *subscriptionHandler) getFromPersistentStorage(ctx context.Context) (err error) {
 	newMap, err := persiststorage.GetAll(h.persistStore, ctx)
 	if err != nil {
 		return
@@ -600,7 +538,7 @@ func (h *SubscriptionHandler) getFromPersistentStorage(ctx context.Context) (err
 	return
 }
 
-func (h *SubscriptionHandler) watchPersistStore(ctx context.Context) (err error) {
+func (h *subscriptionHandler) watchPersistStore(ctx context.Context) (err error) {
 	err = persiststorage.ProcessChanges(h.persistStore, ctx, &h.subscriptionMap, h.subscriptionMapLock)
 
 	if err != nil {

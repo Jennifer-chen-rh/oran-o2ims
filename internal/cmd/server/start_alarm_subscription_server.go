@@ -240,7 +240,7 @@ func (c *AlarmSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) 
 		)
 	}
 
-	handler, err := service.NewAlarmSubscriptionHandler().
+	handler, err := service.NewSubscriptionHandler().
 		SetLogger(logger).
 		SetLoggingWrapper(loggingWrapper).
 		SetCloudID(cloudID).

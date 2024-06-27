@@ -21,7 +21,7 @@ type Storage interface {
 	AddEntry(ctx context.Context, key string, value string) (err error)
 	DeleteEntry(ctx context.Context, key string) (err error)
 	ReadAllEntries(ctx context.Context) (result map[string]data.Object, err error)
-	ProcessChanges(ctx context.Context, dataMap **map[string]data.Object, lock *sync.RWMutex) (err error)
+	ProcessChanges(ctx context.Context, dataMap **map[string]data.Object, lock *sync.Mutex) (err error)
 	ProcessChangesWithFunction(ctx context.Context, function ProcessFunc) (err error)
 }
 

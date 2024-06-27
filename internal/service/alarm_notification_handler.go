@@ -208,7 +208,7 @@ func (b *AlarmNotificationHandlerBuilder) Build(ctx context.Context) (
 	persistStore := persiststorage.NewKubeConfigMapStore().
 		SetNamespace(b.o2imsNamespace).
 		SetName(b.subscriptionsConfigmapName).
-		SetFieldOwnder(FieldOwner).
+		SetFieldOwner(FieldOwner).
 		SetJsonAPI(&jsonAPI).
 		SetClient(b.kubeClient)
 
