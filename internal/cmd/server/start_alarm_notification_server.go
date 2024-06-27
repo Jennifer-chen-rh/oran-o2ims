@@ -288,24 +288,8 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 		return exit.Error(1)
 	}
 
-	// Create the routes:
-	// NOTE TODO: alarm server need generic http post handler/callback function
-	/*adapter, err := service.NewAdapter().
-		SetLogger(logger).
-		SetPathVariables("alarmNotificationID").
-		SetHandler(handler).
-		Build()
-	if err != nil {
-		logger.Error(
-			"Failed to create adapter",
-			"error", err,
-		)
-		return exit.Error(1)
-	} */
 	router.HandleFunc(
 		"/o2ims-infrastructureMonitoring/{version}/alarmNotifications",
-		//TODO http generic call back
-		//handler.Add(),
 		handler.ProcessPost,
 	).Methods(http.MethodPost)
 
