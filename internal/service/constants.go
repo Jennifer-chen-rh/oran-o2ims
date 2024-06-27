@@ -12,11 +12,3 @@ const (
 	SubscriptionIdAlarm                   = "alarmSubscriptionId"
 	SubscriptionIdInfrastructureInventory = "subscriptionId"
 )
-
-func isSubscriptionAlarm(idString string) bool {
-	return idString == SubscriptionIdAlarm
-}
-
-func isSubscriptionInfrastructureInventory(idString string) bool {
-	return idString == SubscriptionIdInfrastructureInventory
-}
