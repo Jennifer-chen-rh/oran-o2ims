@@ -223,7 +223,7 @@ func (b *SubscriptionHandlerBuilder) Build(ctx context.Context) (
 		"CloudID", b.cloudID,
 	)
 
-	err = result.getFromPersistentStorage(ctx)
+	err = handler.getFromPersistentStorage(ctx)
 	b.logger.Debug(
 		"alarmSubscriptionHandler build:",
 		"persistStorage namespace", b.o2imsNamespace,
@@ -242,7 +242,7 @@ func (b *SubscriptionHandlerBuilder) Build(ctx context.Context) (
 		return
 	}
 
-	err = result.watchPersistStore(ctx)
+	err = handler.watchPersistStore(ctx)
 	if err != nil {
 		b.logger.Error(
 			"alarmSubscriptionHandler failed to watch persist store changes ",
