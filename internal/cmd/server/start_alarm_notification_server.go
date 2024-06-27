@@ -266,7 +266,7 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 	}
 
 	if subscriptionsConfigmapName == "" {
-		subscriptionsConfigmapName = service.DefaultConfigmapName
+		subscriptionsConfigmapName = service.DefaultAlarmConfigmapName
 	}
 
 	handler, err := service.NewAlarmNotificationHandler().
