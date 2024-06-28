@@ -160,7 +160,7 @@ func (b *alarmSubscriptionSearcher) pocessSubscriptionMapForSearcher(subscriptio
 // following function is on the path trigger by alerts originated from alert manager
 // and query the subscription data structure to get matched the subscription
 // The read lock is needed here to protect the read access to the data
-func (h *alarmNotificationHandler) getSubscriptionIdsFromAlarm(ctx context.Context, alarm data.Object) (result alarmSubIdSet) {
+func (h *AlarmNotificationHandler) getSubscriptionIdsFromAlarm(ctx context.Context, alarm data.Object) (result alarmSubIdSet) {
 
 	h.subscriptionMapMemoryLock.RLock()
 	defer h.subscriptionMapMemoryLock.RUnlock()
@@ -188,7 +188,7 @@ func (h *alarmNotificationHandler) getSubscriptionIdsFromAlarm(ctx context.Conte
 	return
 }
 
-func (h *alarmNotificationHandler) getSubscriptionInfo(ctx context.Context, subId string) (result subscriptionInfo, ok bool) {
+func (h *AlarmNotificationHandler) getSubscriptionInfo(ctx context.Context, subId string) (result subscriptionInfo, ok bool) {
 	h.subscriptionMapMemoryLock.RLock()
 	defer h.subscriptionMapMemoryLock.RUnlock()
 	result, ok = h.subscriptionSearcher.subscriptionInfoMap[subId]

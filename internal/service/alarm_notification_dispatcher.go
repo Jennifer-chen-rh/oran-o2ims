@@ -16,11 +16,11 @@ import (
 // Add is the implementation of the object handler ADD interface.
 // receive obsability alarm post and trigger the alarms
 
-func (h *alarmNotificationHandler) add(ctx context.Context,
+func (h *AlarmNotificationHandler) add(ctx context.Context,
 	request *AddRequest) (response *AddResponse, err error) {
 
 	h.logger.Debug(
-		"alarmNotificationHandler Add",
+		"AlarmNotificationHandler Add",
 	)
 
 	// Following needs to be test alert
@@ -31,7 +31,7 @@ func (h *alarmNotificationHandler) add(ctx context.Context,
 	alarmEventRecord, err := h.alarmMapper.MapAlertItem(ctx, request.Object)
 	if err != nil {
 		h.logger.Debug(
-			"alarmNotificationHandler failed to map the item",
+			"AlarmNotificationHandler failed to map the item",
 			slog.String("error", err.Error()),
 		)
 		return
@@ -40,7 +40,7 @@ func (h *alarmNotificationHandler) add(ctx context.Context,
 	debug, err := h.jsonAPI.MarshalIndent(&alarmEventRecord, "", " ")
 	if err == nil {
 		h.logger.Debug(
-			"alarmNotificationHandler alarmEventRecord",
+			"AlarmNotificationHandler alarmEventRecord",
 			slog.String("packet", string(debug)),
 		)
 	}
@@ -53,7 +53,7 @@ func (h *alarmNotificationHandler) add(ctx context.Context,
 
 		if !ok {
 			h.logger.Debug(
-				"alarmNotificationHandler failed to get subinfo key",
+				"AlarmNotificationHandler failed to get subinfo key",
 				slog.String(": ", key),
 			)
 
@@ -84,7 +84,7 @@ func (h *alarmNotificationHandler) add(ctx context.Context,
 			content, err := h.jsonAPI.MarshalIndent(&pkt, "", " ")
 			if err != nil {
 				h.logger.Debug(
-					"alarmNotificationHandler failed to get content of new packet",
+					"AlarmNotificationHandler failed to get content of new packet",
 					slog.String("error", err.Error()),
 				)
 			}
@@ -92,7 +92,7 @@ func (h *alarmNotificationHandler) add(ctx context.Context,
 			//following new buffer usage may need optimization
 			resp, err := h.httpClient.Post(subInfo.uris, "application/json", bytes.NewBuffer(content))
 			if err != nil {
-				h.logger.Debug("alarmNotificationHandler failed to post packet",
+				h.logger.Debug("AlarmNotificationHandler failed to post packet",
 					slog.String("error", err.Error()),
 				)
 				return
@@ -107,7 +107,7 @@ func (h *alarmNotificationHandler) add(ctx context.Context,
 	return
 }
 
-func (h *alarmNotificationHandler) ProcessPost(w http.ResponseWriter, r *http.Request) {
+func (h *AlarmNotificationHandler) ProcessPost(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	// Check that the content type is acceptable:

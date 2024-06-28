@@ -49,7 +49,7 @@ type SubscriptionHandlerBuilder struct {
 // alarmSubscriptionHander knows how to respond to requests to list alarm subscriptions.
 // Don't create instances of this type directly, use the NewAlarmSubscriptionHandler function
 // instead.
-type subscriptionHandler struct {
+type SubscriptionHandler struct {
 	logger               *slog.Logger
 	loggingWrapper       func(http.RoundTripper) http.RoundTripper
 	cloudID              string
@@ -130,7 +130,7 @@ func (b *SubscriptionHandlerBuilder) SetConfigmapName(
 
 // Build uses the data stored in the builder to create anad configure a new handler.
 func (b *SubscriptionHandlerBuilder) Build(ctx context.Context) (
-	result *subscriptionHandler, err error) {
+	result *SubscriptionHandler, err error) {
 	// Check parameters:
 	if b.logger == nil {
 		err = errors.New("logger is mandatory")
@@ -203,7 +203,7 @@ func (b *SubscriptionHandlerBuilder) Build(ctx context.Context) (
 		SetClient(b.kubeClient)
 
 	// Create and populate the object:
-	handler := &subscriptionHandler{
+	handler := &SubscriptionHandler{
 		logger:               b.logger,
 		loggingWrapper:       b.loggingWrapper,
 		cloudID:              b.cloudID,
@@ -256,7 +256,7 @@ func (b *SubscriptionHandlerBuilder) Build(ctx context.Context) (
 }
 
 // List is the implementation of the collection handler interface.
-func (h *subscriptionHandler) List(ctx context.Context,
+func (h *SubscriptionHandler) List(ctx context.Context,
 	request *ListRequest) (response *ListResponse, err error) {
 	// Create the stream that will fetch the items:
 	var items data.Stream
@@ -289,7 +289,7 @@ func (h *subscriptionHandler) List(ctx context.Context,
 }
 
 // Get is the implementation of the object handler interface.
-func (h *subscriptionHandler) Get(ctx context.Context,
+func (h *SubscriptionHandler) Get(ctx context.Context,
 	request *GetRequest) (response *GetResponse, err error) {
 
 	h.logger.DebugContext(
@@ -306,7 +306,7 @@ func (h *subscriptionHandler) Get(ctx context.Context,
 }
 
 // Add is the implementation of the object handler ADD interface.
-func (h *subscriptionHandler) Add(ctx context.Context,
+func (h *SubscriptionHandler) Add(ctx context.Context,
 	request *AddRequest) (response *AddResponse, err error) {
 
 	h.logger.DebugContext(
@@ -340,7 +340,7 @@ func (h *subscriptionHandler) Add(ctx context.Context,
 }
 
 // Delete is the implementation of the object handler delete interface.
-func (h *subscriptionHandler) Delete(ctx context.Context,
+func (h *SubscriptionHandler) Delete(ctx context.Context,
 	request *DeleteRequest) (response *DeleteResponse, err error) {
 
 	h.logger.DebugContext(
@@ -355,7 +355,7 @@ func (h *subscriptionHandler) Delete(ctx context.Context,
 
 	return
 }
-func (h *subscriptionHandler) fetchItem(ctx context.Context,
+func (h *SubscriptionHandler) fetchItem(ctx context.Context,
 	id string) (result data.Object, err error) {
 	h.subscriptionMapLock.Lock()
 	defer h.subscriptionMapLock.Unlock()
@@ -369,7 +369,7 @@ func (h *subscriptionHandler) fetchItem(ctx context.Context,
 	return
 }
 
-func (h *subscriptionHandler) fetchItems(ctx context.Context) (result data.Stream, err error) {
+func (h *SubscriptionHandler) fetchItems(ctx context.Context) (result data.Stream, err error) {
 	h.subscriptionMapLock.Lock()
 	defer h.subscriptionMapLock.Unlock()
 
@@ -387,7 +387,7 @@ func (h *subscriptionHandler) fetchItems(ctx context.Context) (result data.Strea
 	return
 }
 
-func (h *subscriptionHandler) addItem(
+func (h *SubscriptionHandler) addItem(
 	ctx context.Context, input_data AddRequest) (subId string, err error) {
 
 	subId = h.getSubcriptionId()
@@ -411,7 +411,7 @@ func (h *subscriptionHandler) addItem(
 	return
 }
 
-func (h *subscriptionHandler) deleteItem(
+func (h *SubscriptionHandler) deleteItem(
 	ctx context.Context, delete_req DeleteRequest) (err error) {
 
 	err = persiststorage.Delete(h.persistStore, ctx, delete_req.Variables[0])
@@ -424,18 +424,18 @@ func (h *subscriptionHandler) deleteItem(
 	return
 }
 
-func (h *subscriptionHandler) mapItem(ctx context.Context,
+func (h *SubscriptionHandler) mapItem(ctx context.Context,
 	input data.Object) (output data.Object, err error) {
 
 	//TBD only save related attributes in the future
 	return input, nil
 }
-func (h *subscriptionHandler) addToSubscriptionMap(key string, value data.Object) {
+func (h *SubscriptionHandler) addToSubscriptionMap(key string, value data.Object) {
 	h.subscriptionMapLock.Lock()
 	defer h.subscriptionMapLock.Unlock()
 	(*h.subscriptionMap)[key] = value
 }
-func (h *subscriptionHandler) deleteToSubscriptionMap(key string) {
+func (h *SubscriptionHandler) deleteToSubscriptionMap(key string) {
 	h.subscriptionMapLock.Lock()
 	defer h.subscriptionMapLock.Unlock()
 	//test if the key in the map
@@ -448,18 +448,18 @@ func (h *subscriptionHandler) deleteToSubscriptionMap(key string) {
 	delete(*h.subscriptionMap, key)
 }
 
-func (h *subscriptionHandler) assignSubscriptionMap(newMap map[string]data.Object) {
+func (h *SubscriptionHandler) assignSubscriptionMap(newMap map[string]data.Object) {
 	h.subscriptionMapLock.Lock()
 	defer h.subscriptionMapLock.Unlock()
 	h.subscriptionMap = &newMap
 }
 
-func (h *subscriptionHandler) getSubcriptionId() (subId string) {
+func (h *SubscriptionHandler) getSubcriptionId() (subId string) {
 	subId = uuid.New().String()
 	return
 }
 
-func (h *subscriptionHandler) encodeSubId(
+func (h *SubscriptionHandler) encodeSubId(
 	subId string, input data.Object) (output data.Object, err error) {
 
 	// Get consumer name, subscriptions.
@@ -478,7 +478,7 @@ func (h *subscriptionHandler) encodeSubId(
 	return
 }
 
-func (h *subscriptionHandler) decodeSubId(
+func (h *SubscriptionHandler) decodeSubId(
 	input data.Object) (output string, err error) {
 
 	// get cluster name, subscriptions
@@ -488,7 +488,7 @@ func (h *subscriptionHandler) decodeSubId(
 	return
 }
 
-func (h *subscriptionHandler) getFromPersistentStorage(ctx context.Context) (err error) {
+func (h *SubscriptionHandler) getFromPersistentStorage(ctx context.Context) (err error) {
 	newMap, err := persiststorage.GetAll(h.persistStore, ctx)
 	if err != nil {
 		return
@@ -497,7 +497,7 @@ func (h *subscriptionHandler) getFromPersistentStorage(ctx context.Context) (err
 	return
 }
 
-func (h *subscriptionHandler) watchPersistStore(ctx context.Context) (err error) {
+func (h *SubscriptionHandler) watchPersistStore(ctx context.Context) (err error) {
 	err = persiststorage.ProcessChanges(h.persistStore, ctx, &h.subscriptionMap, h.subscriptionMapLock)
 
 	if err != nil {

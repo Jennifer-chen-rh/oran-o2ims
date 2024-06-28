@@ -47,11 +47,11 @@ type AlarmNotificationHandlerBuilder struct {
 // key string is uuid
 type alarmSubIdSet map[string]struct{}
 
-// alarmNotificationHander will receive the alarts from openshift alert manager,
+// AlarmNotificationHander will receive the alarts from openshift alert manager,
 // match alarm subscription filter rules with the alerts/alarm, and send out matched alarm notifications
 // Don't create instances of this type directly, use the NewAlarmNotificationHandler function
 // instead.
-type alarmNotificationHandler struct {
+type AlarmNotificationHandler struct {
 	logger            *slog.Logger
 	loggingWrapper    func(http.RoundTripper) http.RoundTripper
 	cloudID           string
@@ -69,7 +69,7 @@ type alarmNotificationHandler struct {
 }
 
 // NewAlarmNotificationHandler creates a builder that can then be used to configure and create a
-// handler for alarmNotificationHandler.
+// handler for AlarmNotificationHandler.
 func NewAlarmNotificationHandler() *AlarmNotificationHandlerBuilder {
 	return &AlarmNotificationHandlerBuilder{}
 }
@@ -135,7 +135,7 @@ func (b *AlarmNotificationHandlerBuilder) SetResourceServerToken(
 
 // Build uses the data stored in the builder to create anad configure a new handler.
 func (b *AlarmNotificationHandlerBuilder) Build(ctx context.Context) (
-	result *alarmNotificationHandler, err error) {
+	result *AlarmNotificationHandler, err error) {
 	// Check parameters:
 	if b.logger == nil {
 		err = errors.New("logger is mandatory")
@@ -219,7 +219,7 @@ func (b *AlarmNotificationHandlerBuilder) Build(ctx context.Context) (
 	}
 
 	// Create and populate the object:
-	handler := &alarmNotificationHandler{
+	handler := &AlarmNotificationHandler{
 		logger:                    b.logger,
 		loggingWrapper:            b.loggingWrapper,
 		cloudID:                   b.cloudID,
@@ -235,7 +235,7 @@ func (b *AlarmNotificationHandlerBuilder) Build(ctx context.Context) (
 	}
 
 	b.logger.Debug(
-		"alarmNotificationHandler build:",
+		"AlarmNotificationHandler build:",
 		"CloudID", b.cloudID,
 	)
 
@@ -252,7 +252,7 @@ func (b *AlarmNotificationHandlerBuilder) Build(ctx context.Context) (
 	err = handler.recoveryFromPersistStore(ctx)
 	if err != nil {
 		b.logger.Error(
-			"alarmNotificationHandler failed to recovery from persistStore ",
+			"AlarmNotificationHandler failed to recovery from persistStore ",
 			slog.String("error", err.Error()),
 		)
 		return
@@ -261,7 +261,7 @@ func (b *AlarmNotificationHandlerBuilder) Build(ctx context.Context) (
 	err = handler.watchPersistStore(ctx)
 	if err != nil {
 		b.logger.Error(
-			"alarmNotificationHandler failed to watch persist store changes ",
+			"AlarmNotificationHandler failed to watch persist store changes ",
 			slog.String("error", err.Error()),
 		)
 		return
@@ -270,7 +270,7 @@ func (b *AlarmNotificationHandlerBuilder) Build(ctx context.Context) (
 	return
 }
 
-func (h *alarmNotificationHandler) recoveryFromPersistStore(ctx context.Context) (err error) {
+func (h *AlarmNotificationHandler) recoveryFromPersistStore(ctx context.Context) (err error) {
 	newMap, err := persiststorage.GetAll(h.persistStore, ctx)
 	if err != nil {
 		return
@@ -278,7 +278,7 @@ func (h *alarmNotificationHandler) recoveryFromPersistStore(ctx context.Context)
 	err = h.assignSubscriptionMap(&newMap)
 	if err != nil {
 		h.logger.Error(
-			"alarmNotificationHandler failed building the indexes ",
+			"AlarmNotificationHandler failed building the indexes ",
 			slog.String("error", err.Error()),
 		)
 
@@ -286,12 +286,12 @@ func (h *alarmNotificationHandler) recoveryFromPersistStore(ctx context.Context)
 	return
 }
 
-func (h *alarmNotificationHandler) watchPersistStore(ctx context.Context) (err error) {
+func (h *AlarmNotificationHandler) watchPersistStore(ctx context.Context) (err error) {
 	err = persiststorage.ProcessChangesWithFunction(h.persistStore, ctx, h.processStorageChanges)
 
 	if err != nil {
 		h.logger.Error(
-			"alarmNotificationHandler watchPersistStore failed ",
+			"AlarmNotificationHandler watchPersistStore failed ",
 			slog.String("error", err.Error()),
 		)
 	}
@@ -300,7 +300,7 @@ func (h *alarmNotificationHandler) watchPersistStore(ctx context.Context) (err e
 
 // Following function is called during daemon start to update alarm subscription as well as
 // alarm subscription got updated. The write lock is need to update subscription kept in memory
-func (h *alarmNotificationHandler) assignSubscriptionMap(newMap *map[string]data.Object) (err error) {
+func (h *AlarmNotificationHandler) assignSubscriptionMap(newMap *map[string]data.Object) (err error) {
 	h.subscriptionMapMemoryLock.Lock()
 	defer h.subscriptionMapMemoryLock.Unlock()
 	h.subscriptionMap = newMap
@@ -319,13 +319,13 @@ func (h *alarmNotificationHandler) assignSubscriptionMap(newMap *map[string]data
 	return
 }
 
-func (h *alarmNotificationHandler) processStorageChanges(newMap *map[string]data.Object) {
+func (h *AlarmNotificationHandler) processStorageChanges(newMap *map[string]data.Object) {
 
 	err := h.assignSubscriptionMap(newMap)
 
 	if err != nil {
 		h.logger.Error(
-			"alarmNotificationHandler failed to watch persist store changes ",
+			"AlarmNotificationHandler failed to watch persist store changes ",
 			slog.String("error", err.Error()),
 		)
 	}
