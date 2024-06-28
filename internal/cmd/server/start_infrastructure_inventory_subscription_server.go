@@ -63,12 +63,12 @@ func InfrastructureInventorySubscriptionServer() *cobra.Command {
 	)
 
 	_ = flags.String(
-		namespace,
+		namespaceFlagName,
 		"",
 		"The namespace the server is running",
 	)
 	_ = flags.String(
-		subscriptionConfigmapName,
+		subscriptionConfigmapNameFlagName,
 		"",
 		"The configmap name used by infrastructure inventory subscriptions.",
 	)
@@ -230,7 +230,7 @@ func (c *InfrastructureInventorySubscriptionServerCommand) run(cmd *cobra.Comman
 	}
 
 	// Get the namespace:
-	o2imsNamespace, err := flags.GetString(namespace)
+	o2imsNamespace, err := flags.GetString(namespaceFlagName)
 	if err != nil {
 		logger.DebugContext(
 			ctx,
@@ -243,7 +243,7 @@ func (c *InfrastructureInventorySubscriptionServerCommand) run(cmd *cobra.Comman
 		o2imsNamespace = service.DefaultNamespace
 	}
 	// Get the configmapName:
-	subscriptionsConfigmapName, err := flags.GetString(subscriptionConfigmapName)
+	subscriptionsConfigmapName, err := flags.GetString(subscriptionConfigmapNameFlagName)
 	if err != nil {
 		logger.DebugContext(
 			ctx,

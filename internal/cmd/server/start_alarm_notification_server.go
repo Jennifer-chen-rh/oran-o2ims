@@ -56,22 +56,22 @@ func AlarmNotificationServer() *cobra.Command {
 		"O-Cloud identifier.",
 	)
 	_ = flags.String(
-		namespace,
+		namespaceFlagName,
 		"",
 		"The namespace the server is running",
 	)
 	_ = flags.String(
-		subscriptionConfigmapName,
+		subscriptionConfigmapNameFlagName,
 		"",
 		"The configmap name used by alarm subscriptions ",
 	)
 	_ = flags.String(
-		resourceServerUrl,
+		resourceServerURLFlagName,
 		"",
 		"The resource server URL used by alarm subscriptions ",
 	)
 	_ = flags.String(
-		resourceServerToken,
+		resourceServerTokenFlagName,
 		"",
 		"The resource server token used by alarm subscriptions ",
 	)
@@ -241,7 +241,7 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 
 	// Create the handler:
 	// Get the namespace:
-	o2imsNamespace, err := flags.GetString(namespace)
+	o2imsNamespace, err := flags.GetString(namespaceFlagName)
 	if err != nil {
 		logger.DebugContext(
 			ctx,
@@ -255,7 +255,7 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 		o2imsNamespace = service.DefaultNamespace
 	}
 	// Get the configmapName:
-	subscriptionsConfigmapName, err := flags.GetString(subscriptionConfigmapName)
+	subscriptionsConfigmapName, err := flags.GetString(subscriptionConfigmapNameFlagName)
 	if err != nil {
 		logger.DebugContext(
 			ctx,

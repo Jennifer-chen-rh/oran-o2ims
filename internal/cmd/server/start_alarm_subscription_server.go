@@ -61,12 +61,12 @@ func AlarmSubscriptionServer() *cobra.Command {
 		"Extension to add to alarm subscriptions.",
 	)
 	_ = flags.String(
-		namespace,
+		namespaceFlagName,
 		"",
 		"The namespace the server is running",
 	)
 	_ = flags.String(
-		subscriptionConfigmapName,
+		subscriptionConfigmapNameFlagName,
 		"",
 		"The configmap name used by alarm subscriptions ",
 	)
@@ -230,7 +230,7 @@ func (c *AlarmSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) 
 	}
 
 	// Get the namespace:
-	o2imsNamespace, err := flags.GetString(namespace)
+	o2imsNamespace, err := flags.GetString(namespaceFlagName)
 	if err != nil {
 		logger.DebugContext(
 			ctx,
@@ -243,7 +243,7 @@ func (c *AlarmSubscriptionServerCommand) run(cmd *cobra.Command, argv []string) 
 		o2imsNamespace = service.DefaultNamespace
 	}
 	// Get the configmapName:
-	subscriptionsConfigmapName, err := flags.GetString(subscriptionConfigmapName)
+	subscriptionsConfigmapName, err := flags.GetString(subscriptionConfigmapNameFlagName)
 	if err != nil {
 		logger.DebugContext(
 			ctx,
