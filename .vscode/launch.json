@@ -70,6 +70,8 @@
                                 "--cloud-id=6575154c-72fc-4ed8-9a87-a81885ab38bb",
                                 "--api-listener-address=127.0.0.1:8010",
                                 "--metrics-listener-address=127.0.0.1:8095",
+                                "--namespace=orantest",
+                                "--configmap-name=oran-o2ims-alarm-subscriptions",
                         ]
                 },
                 {

@@ -66,8 +66,10 @@ pids="${pids} $!"
 --log-level="debug" \
 --log-field="server=alarm-subscription" \
 --log-field="pid=%p" \
---api-listener-address="127.0.0.1:8006" \
---metrics-listener-address="127.0.0.1:8007" \
+--api-listener-address="127.0.0.1:8010" \
+--metrics-listener-address="127.0.0.1:8095" \
+--namespace="orantest" \
+--configmap-name="oran-o2ims-alarm-subscriptions" \
 --cloud-id="123" \
 &
 pids="${pids} $!"
