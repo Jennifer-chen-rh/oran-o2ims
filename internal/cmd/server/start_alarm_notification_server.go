@@ -59,7 +59,6 @@ func AlarmNotificationServer() *cobra.Command {
 		extensionsFlagName,
 		[]string{},
 		"Extension to add to alarm notifications.",
-
 	)
 	return result
 }
@@ -243,6 +242,11 @@ func (c *AlarmNotificationServerCommand) run(cmd *cobra.Command, argv []string) 
 	}
 	router.Handle(
 		"/o2ims-notificationdebug/v1/alarmNotification",
+		adapter,
+	).Methods(http.MethodPost)
+
+	router.Handle(
+		"/",
 		adapter,
 	).Methods(http.MethodPost)
 
