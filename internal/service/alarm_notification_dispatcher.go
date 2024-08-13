@@ -170,7 +170,7 @@ func (h *AlarmNotificationHandler) ServeHTTP(w http.ResponseWriter, r *http.Requ
 		h.logger.ErrorContext(
 			ctx,
 			"Failed to add item",
-			"error", err,
+			"error", err.Error(),
 		)
 		SendError(
 			w,

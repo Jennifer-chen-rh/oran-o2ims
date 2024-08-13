@@ -155,9 +155,6 @@ func (r *AlarmMapper) MapItem(ctx context.Context,
 	}
 
 	alarmChangedTime, err := data.GetString(from, "updatedAt")
-	if err != nil {
-		return
-	}
 
 	severity, err := data.GetString(from, "labels.severity")
 	if err != nil {
@@ -224,13 +221,16 @@ func (r *AlarmMapper) MapItem(ctx context.Context,
 		"resourceID":         resourceID,
 		"resourceTypeID":     resourceTypeID,
 		"alarmRaisedTime":    alarmRaisedTime,
-		"alarmChangedTime":   alarmChangedTime,
 		"alarmDefinitionID":  alertName,
 		"probableCauseID":    alertName,
 		"perceivedSeverity":  AlarmSeverity(severity).mapProperty(),
 		"extensions":         extensionsMap,
 	}
 
+	//alarmChangedTime is an optional fields
+	if alarmChangedTime != "" {
+		to["alarmChangedTime"] = alarmChangedTime
+	}
 	return
 }
 
