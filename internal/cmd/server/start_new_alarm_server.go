@@ -29,7 +29,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/openshift-kni/oran-o2ims/internal"
+	"github.com/openshift-kni/oran-o2ims/internal/authentication"
+	"github.com/openshift-kni/oran-o2ims/internal/authorization"
 	"github.com/openshift-kni/oran-o2ims/internal/exit"
+	"github.com/openshift-kni/oran-o2ims/internal/k8s"
 	"github.com/openshift-kni/oran-o2ims/internal/logging"
 	"github.com/openshift-kni/oran-o2ims/internal/metrics"
 	"github.com/openshift-kni/oran-o2ims/internal/network"
@@ -50,6 +53,10 @@ func AlarmServer() *cobra.Command {
 		RunE:  c.run,
 	}
 	flags := result.Flags()
+
+	authentication.AddFlags(flags)
+	authorization.AddFlags(flags)
+
 	network.AddListenerFlags(flags, network.APIListener, network.APIAddress)
 	network.AddListenerFlags(flags, network.MetricsListener, network.MetricsAddress)
 	_ = flags.String(
@@ -82,6 +89,19 @@ func AlarmServer() *cobra.Command {
 		[]string{},
 		"Extension to add to alarms.",
 	)
+
+	// flags needed by current alarm subcription servers
+	_ = flags.String(
+		namespaceFlagName,
+		"",
+		"The namespace the server is running",
+	)
+	_ = flags.String(
+		subscriptionConfigmapNameFlagName,
+		"",
+		"The configmap name used by alarm subscriptions ",
+	)
+
 	return result
 }
 
@@ -244,11 +264,36 @@ func (c *AlarmServerCommand) run(cmd *cobra.Command, argv []string) error {
 		)
 	}
 
+	// Create the authentication and authorization wrappers:
+	authenticationWrapper, err := authentication.NewHandlerWrapper().
+		SetLogger(c.logger).
+		SetFlags(flags).
+		Build()
+	if err != nil {
+		c.logger.Error(
+			"Failed to create authentication wrapper",
+			slog.String("error", err.Error()),
+		)
+		return exit.Error(1)
+	}
+	authorizationWrapper, err := authorization.NewHandlerWrapper().
+		SetLogger(c.logger).
+		SetFlags(flags).
+		Build()
+	if err != nil {
+		c.logger.Error(
+			"Failed to create authorization wrapper",
+			slog.String("error", err.Error()),
+		)
+		return exit.Error(1)
+	}
+
 	// Create the metrics wrapper:
 	metricsWrapper, err := metrics.NewHandlerWrapper().
 		AddPaths(
 			"/o2ims-infrastructureMonitoring/-/alarms/-",
 			"/o2ims-infrastructureMonitoring/-/alarmProbableCauses/-",
+			"/o2ims-infrastructureMonitoring/-/alarmSubscriptions/-",
 		).
 		SetSubsystem("inbound").
 		Build()
@@ -269,7 +314,19 @@ func (c *AlarmServerCommand) run(cmd *cobra.Command, argv []string) error {
 	router.MethodNotAllowedHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		service.SendError(w, http.StatusMethodNotAllowed, "Method not allowed")
 	})
-	router.Use(metricsWrapper)
+	router.Use(metricsWrapper, authenticationWrapper, authorizationWrapper)
+
+	// create k8s client with kube(from env first)
+	kubeClient, err := k8s.NewClient().SetLogger(c.logger).SetLoggingWrapper(transportWrapper).Build()
+
+	if err != nil {
+		c.logger.ErrorContext(
+			ctx,
+			"Failed to create kubeClient",
+			"error", err,
+		)
+		return exit.Error(1)
+	}
 
 	// Generate the Prometheus Alertmanager API URL according to the backend URL
 	backendURL, err = c.generateAlertmanagerApiUrl(backendURL)
@@ -279,6 +336,35 @@ func (c *AlarmServerCommand) run(cmd *cobra.Command, argv []string) error {
 			"Failed to generate search API URL",
 			"error", err.Error(),
 		)
+	}
+
+	namespace, err := flags.GetString(namespaceFlagName)
+	if err != nil {
+		c.logger.ErrorContext(
+			ctx,
+			"Failed to get o2ims namespace flag",
+			slog.String("flag", namespaceFlagName),
+			slog.String("error", err.Error()),
+		)
+		return exit.Error(1)
+	}
+	if namespace == "" {
+		namespace = service.DefaultNamespace
+	}
+	// Get the configmapName:
+	subscriptionsConfigmapName, err := flags.GetString(subscriptionConfigmapNameFlagName)
+	if err != nil {
+		c.logger.ErrorContext(
+			ctx,
+			"Failed to get alarm subscription configmap name flag",
+			slog.String("flag", subscriptionConfigmapNameFlagName),
+			slog.String("error", err.Error()),
+		)
+		return exit.Error(1)
+	}
+
+	if subscriptionsConfigmapName == "" {
+		subscriptionsConfigmapName = service.DefaultAlarmConfigmapName
 	}
 
 	// Create the handler for alarms:
@@ -293,6 +379,71 @@ func (c *AlarmServerCommand) run(cmd *cobra.Command, argv []string) error {
 	if err := c.createAlarmProbableCausesHandler(ctx, router); err != nil {
 		return err
 	}
+
+	// Create alarm subscription handler
+	handler, err := service.NewSubscriptionHandler().
+		SetLogger(c.logger).
+		SetLoggingWrapper(transportWrapper).
+		SetCloudID(cloudID).
+		SetExtensions(extensions...).
+		SetKubeClient(kubeClient).
+		SetSubscriptionIdString(service.SubscriptionIdAlarm).
+		SetNamespace(namespace).
+		SetConfigmapName(subscriptionsConfigmapName).
+		Build(ctx)
+
+	if err != nil {
+		c.logger.ErrorContext(
+			ctx,
+			"Failed to create handler",
+			"error", err,
+		)
+		return exit.Error(1)
+	}
+
+	// Create the routes:
+	adapter, err := service.NewAdapter().
+		SetLogger(c.logger).
+		SetPathVariables("alarmSubscriptionID").
+		SetHandler(handler).
+		Build()
+	if err != nil {
+		c.logger.ErrorContext(
+			ctx,
+			"Failed to create adapter",
+			"error", err,
+		)
+		return exit.Error(1)
+	}
+	router.Handle(
+		"/o2ims-infrastructureMonitoring/{version}/alarmSubscriptions",
+		adapter,
+	).Methods(http.MethodGet, http.MethodPost)
+
+	// create alarm notificationhandler
+	notificationHandler, err := service.NewAlarmNotificationHandler().
+		SetLogger(c.logger).
+		SetLoggingWrapper(transportWrapper).
+		SetCloudID(cloudID).
+		SetKubeClient(kubeClient).
+		SetNamespace(namespace).
+		SetConfigmapName(subscriptionsConfigmapName).
+		SetResourceServerURL(resourceServerURL).
+		SetResourceServerToken(resourceServerToken).
+		Build(ctx)
+
+	if err != nil {
+		c.logger.Error(
+			"Failed to create handler",
+			"error", err,
+		)
+		return exit.Error(1)
+	}
+
+	router.Handle(
+		"/",
+		notificationHandler,
+	).Methods(http.MethodPost)
 
 	// Start the API server:
 	apiListener, err := network.NewListener().
