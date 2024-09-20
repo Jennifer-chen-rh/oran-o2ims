@@ -67,6 +67,10 @@
                         "request": "launch",
                         "mode": "auto",
                         "program": "${workspaceFolder}",
+                        "env": {
+                            "KUBECONFIG": "/home/kni/jenchen/auth/kubeconfig",
+                            "KUBERNETES_MASTER": "/home/kni/jenchen/auth/kubeconfig"
+                        }
                         "args": [
                                 "start",
                                 "alarm-subscription-server",
@@ -83,10 +87,10 @@
                         "type": "go",
                         "request": "launch",
                         "mode": "auto",
+                        "program": "${workspaceFolder}",
                         "env": {
-                                "INSECURE_SKIP_VERIFY": "true",
-                                "KUBECONFIG": "/home/username/.kube/kubeconfig"
-                        },
+                            "KUBECONFIG": "/home/username/.kube/kubeconfig",
+                        }
                         "program": "${workspaceFolder}",
                         "args": [
                                 "start",
@@ -95,7 +99,7 @@
                                 "--log-field=server=alarm-notification",
                                 "--cloud-id=6575154c-72fc-4ed8-9a87-a81885ab38bb",
                                 "--namespace=orantest",
-                                "--api-listener-address=127.0.0.1:8035",
+                                "--api-listener-address=127.0.0.1:9090",
                                 "--metrics-listener-address=127.0.0.1:8075",
                                 "--resource-server-url=${env:RESOURCE_SERVER_URL}",
                                 "--resource-server-token=${env:RESOURCE_SERVER_TOKEN}"
@@ -108,16 +112,20 @@
                         "mode": "auto",
                         "program": "${workspaceFolder}",
                         "env": {
-                                "INSECURE_SKIP_VERIFY": "true"
+                            "KUBECONFIG": "/home/kni/jenchen/auth/kubeconfig",
+                            "KUBERNETES_MASTER": "/home/kni/jenchen/auth/kubeconfig",
+                            "INSECURE_SKIP_VERIFY": "true"
                         },
                         "args": [
                                 "start",
                                 "alarm-server",
                                 "--log-level=debug",
                                 "--cloud-id=6575154c-72fc-4ed8-9a87-a81885ab38bb",
-                                "--backend-url=${env:BACKEND_URL}",
-                                "--backend-token=${env:BACKEND_TOKEN}",
-                                "--resource-server-url=${env:RESOURCE_SERVER_URL}"
+                                "--api-listener-address=127.0.0.1:8090",
+                                "--namespace=orantest",
+                                "--backend-token=eyJhbGciOiJSUzI1NiIsImtpZCI6Ik54MmhMT2UzdmpWNGpKT2RXTkhSQkFMY2h5ZEM3aVdtbXd2ZGtvaTgtcEUifQ.eyJhdWQiOlsiaHR0cHM6Ly9rdWJlcm5ldGVzLmRlZmF1bHQuc3ZjIl0sImV4cCI6MTcyMzY0OTAyOSwiaWF0IjoxNzIzNTYyNjI5LCJpc3MiOiJodHRwczovL2t1YmVybmV0ZXMuZGVmYXVsdC5zdmMiLCJrdWJlcm5ldGVzLmlvIjp7Im5hbWVzcGFjZSI6Im9wZW5zaGlmdC1vYXV0aC1hcGlzZXJ2ZXIiLCJzZXJ2aWNlYWNjb3VudCI6eyJuYW1lIjoib2F1dGgtYXBpc2VydmVyLXNhIiwidWlkIjoiNTQzMTI4Y2ItNTIxMi00Y2MxLTg3YTgtYTQ5MzhkMWQyMjFmIn19LCJuYmYiOjE3MjM1NjI2MjksInN1YiI6InN5c3RlbTpzZXJ2aWNlYWNjb3VudDpvcGVuc2hpZnQtb2F1dGgtYXBpc2VydmVyOm9hdXRoLWFwaXNlcnZlci1zYSJ9.Lf548LUsFuetndUyPiPXrsGC5l5ZOCfwBqLLirpDyu58KRsJEayjRpnpwXXosVyTWIOd-MXmU60RoBpSHxMey4z5dnj2Q2E8h_eMVwHA8RLsgKgjORG6QYEFpnl1wmPetiPeYUCEOzkNWI4EGLbzHitRCCJTfGz1mGxPyJUaWoV-4tGwvQkGalRiSZ3DYFjDorkMAa7x0OMW9MTEIblYLmo2FmlHHAPIIDn6Q3JjzD1jm7T-6G1YMCE2OhpD1CVZ9aYsAhj437q9oawcaW56PC0PuO71abFJ9YFWz5WVb_7ipCOBEYIck0b0wbh2EvUv_BCCxC8Hy-MwW_6BFXPLYO6azXs8b65BqBwpIsQe5syIkF4mz8-Ef69_8jq26vdW7u5saEdimtGTFmPC_xETt8EIq0h8L8z3KVgqBuzIjYRKsHTS_4aOOffMaEKir4Lx6tI5ijKcbdTxiVXndDjtcq9dvCgLuc3Psbu1w9JnP33UOOnHehHYs9egUN8t0aB_HmWLfmE6JlkSM3IL-cjzp2XWllizzy5YN9zblFA9MoYax7aCR8F9o8oS1BUWsbBPqTAnX2X2L2EaLJDZf4pK2QnVZveFQkZcRS3zkKbHivgGr0w8EDpPW6JG7kafr3X5kj363crzBmf2M6ly-8f9UJwhsGqKpQaX7jmcAmGnhak",
+                                "--backend-url=https://search-api-open-cluster-management.apps.ran-vcl07.ptp.eng.rdu2.dc.redhat.com",
+                                "--resource-server-url=http://localhost:8002/o2ims-infrastructureInventory/v1/"
                         ]
                 },
                 {
